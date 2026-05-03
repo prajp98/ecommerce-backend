@@ -6,6 +6,7 @@ import com.ecommerce.dto.response.LoginResponse;
 import com.ecommerce.dto.response.RegisterResponse;
 import com.ecommerce.entity.Role;
 import com.ecommerce.entity.User;
+import com.ecommerce.exception.DuplicateResourceException;
 import com.ecommerce.repository.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -24,7 +25,7 @@ public class AuthServiceImpl implements AuthService{
     @Override
     public RegisterResponse register(RegisterRequest request) {
         if (userRepository.existsByEmail(request.getEmail())){
-            throw new RuntimeException("Email already exists");
+            throw new DuplicateResourceException("Email already exists");
         }
 
         User user = new User();
