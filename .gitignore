@@ -31,3 +31,4 @@ build/
 .vscode/
 
 .env
+/.run/ecommerce-backend.run.xml
