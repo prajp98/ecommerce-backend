@@ -6,7 +6,9 @@ import com.ecommerce.dto.response.LoginResponse;
 import com.ecommerce.dto.response.RegisterResponse;
 import com.ecommerce.entity.Role;
 import com.ecommerce.entity.User;
+import com.ecommerce.exception.AccountDisabledException;
 import com.ecommerce.exception.DuplicateResourceException;
+import com.ecommerce.exception.InvalidCredentialsException;
 import com.ecommerce.repository.UserRepository;
 import com.ecommerce.security.JwtService;
 import com.ecommerce.service.AuthService;
@@ -51,32 +53,36 @@ public class AuthServiceImpl implements AuthService {
 
         User savedUser = userRepository.save(user);
 
-        RegisterResponse response = new RegisterResponse(
+        return new RegisterResponse(
                 savedUser.getId(),
                 savedUser.getName(),
                 savedUser.getEmail(),
                 savedUser.getRole().name(),
                 "User registered successfully"
         );
-
-        return response;
     }
 
     @Override
     public LoginResponse login(LoginRequest request) {
         String email = request.getEmail().trim().toLowerCase();
 
-        UsernamePasswordAuthenticationToken authenticationRequest =
-                new UsernamePasswordAuthenticationToken(email, request.getPassword());
+        try {
+            UsernamePasswordAuthenticationToken authenticationRequest =
+                    new UsernamePasswordAuthenticationToken(email, request.getPassword());
 
-        authenticationManager.authenticate(authenticationRequest);
+            authenticationManager.authenticate(authenticationRequest);
+        } catch (org.springframework.security.authentication.DisabledException ex) {
+            throw new AccountDisabledException("Account is disabled");
+        } catch (org.springframework.security.authentication.BadCredentialsException ex) {
+            throw new InvalidCredentialsException("Invalid email or password");
+        }
 
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new InvalidCredentialsException("Invalid email or password"));
 
         String token = jwtService.generateToken(user);
 
-        LoginResponse response = new LoginResponse(
+        return new LoginResponse(
                 token,
                 "Bearer",
                 user.getId(),
@@ -84,7 +90,5 @@ public class AuthServiceImpl implements AuthService {
                 user.getEmail(),
                 user.getRole().name()
         );
-
-        return response;
     }
 }
