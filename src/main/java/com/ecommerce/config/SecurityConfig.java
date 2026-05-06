@@ -1,6 +1,6 @@
 package com.ecommerce.config;
 
-import com.ecommerce.service.CustomUserDetailsService;
+import com.ecommerce.security.CustomUserDetailsService;
 import com.ecommerce.security.JwtAuthFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
