@@ -4,6 +4,8 @@ import com.ecommerce.dto.request.ProductRequest;
 import com.ecommerce.dto.response.ProductResponse;
 import com.ecommerce.service.ProductService;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -49,14 +51,22 @@ public class ProductController {
     }
 
     @GetMapping("/active")
-    public ResponseEntity<List<ProductResponse>> getAllActiveProducts() {
-        List<ProductResponse> response = productService.getAllActiveProducts();
+    public ResponseEntity<Page<ProductResponse>> getActiveProducts(Pageable pageable) {
+        Page<ProductResponse> response = productService.getActiveProducts(pageable);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<Page<ProductResponse>> searchProducts(@RequestParam String keyword,
+                                                                Pageable pageable) {
+        Page<ProductResponse> response = productService.searchActiveProducts(keyword, pageable);
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/category/{categoryId}")
-    public ResponseEntity<List<ProductResponse>> getProductsByCategoryId(@PathVariable Long categoryId) {
-        List<ProductResponse> response = productService.getProductsByCategoryId(categoryId);
+    public ResponseEntity<Page<ProductResponse>> getProductsByCategory(@PathVariable Long categoryId,
+                                                                       Pageable pageable) {
+        Page<ProductResponse> response = productService.getActiveProductsByCategory(categoryId, pageable);
         return ResponseEntity.ok(response);
     }
 
