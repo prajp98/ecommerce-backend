@@ -11,7 +11,8 @@ import com.ecommerce.repository.ProductRepository;
 import com.ecommerce.service.ProductService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import java.util.List;
 
 @Service
@@ -146,5 +147,25 @@ public class ProductServiceImpl implements ProductService {
         response.setActive(product.isActive());
         response.setMessage(message);
         return response;
+    }
+
+    @Override
+    public Page<ProductResponse> getActiveProducts(Pageable pageable) {
+        Page<Product> productsPage = productRepository.findByActiveTrue(pageable);
+        return productsPage.map(product -> toResponse(product, "Product fetched successfully"));
+    }
+
+    @Override
+    public Page<ProductResponse> searchActiveProducts(String keyword, Pageable pageable) {
+        Page<Product> productsPage =
+                productRepository.findByNameContainingIgnoreCaseAndActiveTrue(keyword, pageable);
+
+        return productsPage.map(product -> toResponse(product, "Product fetched successfully"));
+    }
+
+    @Override
+    public Page<ProductResponse> getActiveProductsByCategory(Long categoryId, Pageable pageable) {
+        Page<Product> productsPage = productRepository.findByCategoryIdAndActiveTrue(categoryId, pageable);
+        return productsPage.map(product -> toResponse(product, "Product fetched successfully"));
     }
 }
