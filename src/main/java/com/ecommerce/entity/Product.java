@@ -5,6 +5,8 @@ import jakarta.validation.constraints.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "products")
@@ -24,7 +26,7 @@ public class Product {
     private String description;
 
     @NotNull
-    @DecimalMin(value = "0.0", inclusive = false)
+    @DecimalMin(value = "0.01", inclusive = false)
     @Column(name = "price", nullable = false, precision = 10, scale = 2)
     private BigDecimal price;
 
@@ -41,6 +43,13 @@ public class Product {
     @Column(name = "active", nullable = false)
     private boolean active = true;
 
+    @OneToMany(
+            mappedBy = "product",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    private List<ProductImage> images = new ArrayList<>();
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -52,7 +61,7 @@ public class Product {
     }
 
 
-    public Product(Long id, String name, String description, BigDecimal price, Integer stock, Category category, boolean active, LocalDateTime createdAt, LocalDateTime updatedAt) {
+    public Product(Long id, String name, String description, BigDecimal price, Integer stock, Category category, boolean active, List<ProductImage> images, LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
         this.name = name;
         this.description = description;
@@ -60,6 +69,7 @@ public class Product {
         this.stock = stock;
         this.category = category;
         this.active = active;
+        this.images = images;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }
@@ -75,6 +85,15 @@ public class Product {
         this.updatedAt = LocalDateTime.now();
     }
 
+    public void addImage(ProductImage image) {
+        images.add(image);
+        image.setProduct(this);
+    }
+
+    public void removeImage(ProductImage image) {
+        images.remove(image);
+        image.setProduct(null);
+    }
     public Long getId() {
         return id;
     }
@@ -138,4 +157,13 @@ public class Product {
     public LocalDateTime getUpdatedAt() {
         return updatedAt;
     }
+
+    public List<ProductImage> getImages() {
+        return images;
+    }
+
+    public void setImages(List<ProductImage> images) {
+        this.images = images;
+    }
+
 }
