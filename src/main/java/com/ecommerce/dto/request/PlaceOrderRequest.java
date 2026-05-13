@@ -1,13 +1,12 @@
 package com.ecommerce.dto.request;
 
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 public class PlaceOrderRequest {
 
-    @NotBlank(message = "Shipping address is required")
-    @Size(max = 500, message = "Shipping address must be at most 500 characters")
-    private String shippingAddress;
+    @NotNull(message = "Address ID is required")
+    private Long addressId;
 
     @Size(max = 200, message = "Payment method must be at most 200 characters")
     private String paymentMethod;
@@ -15,21 +14,21 @@ public class PlaceOrderRequest {
     public PlaceOrderRequest() {
     }
 
-    public PlaceOrderRequest(String shippingAddress, String paymentMethod) {
-        this.shippingAddress = shippingAddress;
+    public PlaceOrderRequest(Long addressId, String paymentMethod) {
+        this.addressId = addressId;
         this.paymentMethod = paymentMethod;
     }
 
-    public String getShippingAddress() {
-        return shippingAddress;
+    public Long getAddressId() {
+        return addressId;
     }
 
     public String getPaymentMethod() {
         return paymentMethod;
     }
 
-    public void setShippingAddress(String shippingAddress) {
-        this.shippingAddress = shippingAddress;
+    public void setAddressId(Long addressId) {
+        this.addressId = addressId;
     }
 
     public void setPaymentMethod(String paymentMethod) {
