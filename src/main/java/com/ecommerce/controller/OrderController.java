@@ -1,11 +1,13 @@
 package com.ecommerce.controller;
 
 import com.ecommerce.dto.request.PlaceOrderRequest;
+import com.ecommerce.dto.request.UpdateOrderStatusRequest;
 import com.ecommerce.dto.response.OrderResponse;
 import com.ecommerce.service.OrderService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -41,6 +43,36 @@ public class OrderController {
                                                       Authentication authentication) {
         String userEmail = authentication.getName();
         OrderResponse response = orderService.getOrderById(userEmail, orderId);
+        return ResponseEntity.ok(response);
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping
+    public ResponseEntity<List<OrderResponse>> getAllOrders() {
+        List<OrderResponse> response = orderService.getAllOrders();
+        return ResponseEntity.ok(response);
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/status/{status}")
+    public ResponseEntity<List<OrderResponse>> getOrdersByStatus(@PathVariable String status) {
+        List<OrderResponse> response = orderService.getOrdersByStatus(status);
+        return ResponseEntity.ok(response);
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PatchMapping("/{orderId}/status")
+    public ResponseEntity<OrderResponse> updateOrderStatus(@PathVariable Long orderId,
+                                                           @Valid @RequestBody UpdateOrderStatusRequest request) {
+        OrderResponse response = orderService.updateOrderStatus(orderId, request);
+        return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("/{orderId}")
+    public ResponseEntity<OrderResponse> cancelOrder(@PathVariable Long orderId,
+                                                     Authentication authentication) {
+        String userEmail = authentication.getName();
+        OrderResponse response = orderService.cancelOrder(userEmail, orderId);
         return ResponseEntity.ok(response);
     }
 }
