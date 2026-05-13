@@ -112,4 +112,15 @@ public class GlobalExceptionHandler extends RuntimeException{
         body.put("message", ex.getMessage());
         return new ResponseEntity<>(body, HttpStatus.FORBIDDEN);
     }
+
+    @ExceptionHandler(org.springframework.http.converter.HttpMessageNotReadableException.class)
+    public ResponseEntity<Map<String, Object>> handleBadRequestBody(Exception ex) {
+        Map<String, Object> body = new HashMap<>();
+        body.put("timestamp", LocalDateTime.now());
+        body.put("status", HttpStatus.BAD_REQUEST.value());
+        body.put("error", "BAD_REQUEST");
+        body.put("message", "Invalid request body");
+
+        return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
+    }
 }
