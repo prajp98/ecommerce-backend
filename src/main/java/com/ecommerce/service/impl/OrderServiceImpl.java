@@ -1,22 +1,15 @@
 package com.ecommerce.service.impl;
 
 import com.ecommerce.dto.request.PlaceOrderRequest;
+import com.ecommerce.dto.request.UpdateOrderStatusRequest;
 import com.ecommerce.dto.response.OrderItemResponse;
 import com.ecommerce.dto.response.OrderResponse;
-import com.ecommerce.entity.CartItem;
-import com.ecommerce.entity.Order;
-import com.ecommerce.entity.OrderItem;
-import com.ecommerce.entity.OrderStatus;
-import com.ecommerce.entity.Product;
-import com.ecommerce.entity.User;
+import com.ecommerce.entity.*;
 import com.ecommerce.exception.EmptyCartException;
 import com.ecommerce.exception.ForbiddenOperationException;
 import com.ecommerce.exception.InsufficientStockException;
 import com.ecommerce.exception.ResourceNotFoundException;
-import com.ecommerce.repository.CartItemRepository;
-import com.ecommerce.repository.OrderRepository;
-import com.ecommerce.repository.ProductRepository;
-import com.ecommerce.repository.UserRepository;
+import com.ecommerce.repository.*;
 import com.ecommerce.service.OrderService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,15 +27,18 @@ public class OrderServiceImpl implements OrderService {
     private final UserRepository userRepository;
     private final CartItemRepository cartItemRepository;
     private final ProductRepository productRepository;
+    private final AddressRepository addressRepository;
 
     public OrderServiceImpl(OrderRepository orderRepository,
                             UserRepository userRepository,
                             CartItemRepository cartItemRepository,
-                            ProductRepository productRepository) {
+                            ProductRepository productRepository,
+                            AddressRepository addressRepository) {
         this.orderRepository = orderRepository;
         this.userRepository = userRepository;
         this.cartItemRepository = cartItemRepository;
         this.productRepository = productRepository;
+        this.addressRepository = addressRepository;
     }
 
     @Override
@@ -55,17 +51,23 @@ public class OrderServiceImpl implements OrderService {
             throw new EmptyCartException("Cart is empty");
         }
 
+        Address address = addressRepository.findById(request.getAddressId())
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Address not found with id: " + request.getAddressId()
+                ));
+
+        if (!address.getUser().getId().equals(user.getId())) {
+            throw new ForbiddenOperationException("You cannot use another user's address");
+        }
+
         Order order = new Order();
         order.setOrderNumber(generateOrderNumber());
         order.setUser(user);
+        order.setAddress(address);
         order.setStatus(OrderStatus.PENDING);
-        order.setShippingAddress(request.getShippingAddress().trim());
-        order.setPaymentMethod(
-                request.getPaymentMethod() == null ? null : request.getPaymentMethod().trim()
-        );
+        order.setPaymentMethod(request.getPaymentMethod() == null ? null : request.getPaymentMethod().trim());
 
         BigDecimal totalAmount = BigDecimal.ZERO;
-        List<OrderItem> orderItems = new ArrayList<>();
 
         for (CartItem cartItem : cartItems) {
             Product product = cartItem.getProduct();
@@ -89,9 +91,7 @@ public class OrderServiceImpl implements OrderService {
             orderItem.setProduct(product);
             orderItem.setQuantity(cartItem.getQuantity());
             orderItem.setPriceAtPurchase(product.getPrice());
-
             order.addOrderItem(orderItem);
-            orderItems.add(orderItem);
         }
 
         order.setTotalAmount(totalAmount);
@@ -126,6 +126,35 @@ public class OrderServiceImpl implements OrderService {
         return toResponse(order, "Order fetched successfully");
     }
 
+    @Override
+    public List<OrderResponse> getAllOrders() {
+        return orderRepository.findAll()
+                .stream()
+                .map(order -> toResponse(order, "Order fetched successfully"))
+                .toList();
+    }
+
+    @Override
+    public List<OrderResponse> getOrdersByStatus(String status) {
+        OrderStatus orderStatus = OrderStatus.valueOf(status.toUpperCase());
+        return orderRepository.findByStatus(orderStatus)
+                .stream()
+                .map(order -> toResponse(order, "Order fetched successfully"))
+                .toList();
+    }
+
+    @Override
+    @Transactional
+    public OrderResponse updateOrderStatus(Long orderId, UpdateOrderStatusRequest request) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + orderId));
+
+        order.setStatus(request.getStatus());
+        Order savedOrder = orderRepository.save(order);
+
+        return toResponse(savedOrder, "Order status updated successfully");
+    }
+
     private User getUserByEmail(String email) {
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + email));
@@ -154,6 +183,8 @@ public class OrderServiceImpl implements OrderService {
                 })
                 .toList();
 
+        Address address = order.getAddress();
+
         OrderResponse response = new OrderResponse();
         response.setOrderId(order.getId());
         response.setOrderNumber(order.getOrderNumber());
@@ -161,12 +192,45 @@ public class OrderServiceImpl implements OrderService {
         response.setTotalAmount(order.getTotalAmount());
         response.setUserId(order.getUser().getId());
         response.setUserEmail(order.getUser().getEmail());
-        response.setShippingAddress(order.getShippingAddress());
+        response.setAddressId(address.getId());
+        response.setAddressLine1(address.getLine1());
+        response.setAddressLine2(address.getLine2());
+        response.setCity(address.getCity());
+        response.setState(address.getState());
+        response.setZipCode(address.getZipCode());
+        response.setCountry(address.getCountry());
         response.setPaymentMethod(order.getPaymentMethod());
         response.setOrderItems(itemResponses);
         response.setCreatedAt(order.getCreatedAt());
         response.setMessage(message);
-
         return response;
+    }
+
+    @Override
+    @Transactional
+    public OrderResponse cancelOrder(String userEmail, Long orderId) {
+        User user = getUserByEmail(userEmail);
+
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + orderId));
+
+        if (!order.getUser().getId().equals(user.getId())) {
+            throw new ForbiddenOperationException("You cannot cancel another user's order");
+        }
+
+        if (order.getStatus() != OrderStatus.PENDING) {
+            throw new ForbiddenOperationException("Only pending orders can be cancelled");
+        }
+
+        for (OrderItem item : order.getOrderItems()) {
+            Product product = item.getProduct();
+            product.setStock(product.getStock() + item.getQuantity());
+            productRepository.save(product);
+        }
+
+        order.setStatus(OrderStatus.CANCELLED);
+        Order savedOrder = orderRepository.save(order);
+
+        return toResponse(savedOrder, "Order cancelled successfully");
     }
 }
