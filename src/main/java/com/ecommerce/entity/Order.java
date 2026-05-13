@@ -6,6 +6,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.SplittableRandom;
 
 @Entity
 @Table(name = "orders")
@@ -42,11 +43,18 @@ public class Order {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
+    @Column(name = "shipping_address", nullable = false, length = 500)
+    private String shippingAddress;
+
+    @Column(name = "payment_method", length = 200)
+    private String paymentMethod;
+
     public Order() {
     }
 
     public Order(Long id, String orderNumber, User user, OrderStatus status, BigDecimal totalAmount,
-                 List<OrderItem> orderItems, LocalDateTime createdAt, LocalDateTime updatedAt) {
+                 List<OrderItem> orderItems, LocalDateTime createdAt, LocalDateTime updatedAt,
+                 String shippingAddress, String paymentMethod) {
         this.id = id;
         this.orderNumber = orderNumber;
         this.user = user;
@@ -55,6 +63,8 @@ public class Order {
         this.orderItems = orderItems;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
+        this.shippingAddress = shippingAddress;
+        this.paymentMethod = paymentMethod;
     }
 
     @PrePersist
@@ -132,5 +142,21 @@ public class Order {
 
     public void setOrderItems(List<OrderItem> orderItems) {
         this.orderItems = orderItems;
+    }
+
+    public String getShippingAddress() {
+        return shippingAddress;
+    }
+
+    public void setShippingAddress(String shippingAddress) {
+        this.shippingAddress = shippingAddress;
+    }
+
+    public String getPaymentMethod() {
+        return paymentMethod;
+    }
+
+    public void setPaymentMethod(String paymentMethod) {
+        this.paymentMethod = paymentMethod;
     }
 }
