@@ -6,7 +6,6 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.SplittableRandom;
 
 @Entity
 @Table(name = "orders")
@@ -23,6 +22,10 @@ public class Order {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "address_id", nullable = false)
+    private Address address;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20)
     private OrderStatus status;
@@ -30,12 +33,11 @@ public class Order {
     @Column(name = "total_amount", nullable = false, precision = 12, scale = 2)
     private BigDecimal totalAmount;
 
-    @OneToMany(
-            mappedBy = "order",
-            cascade = CascadeType.ALL,
-            orphanRemoval = true
-    )
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItem> orderItems = new ArrayList<>();
+
+    @Column(name = "payment_method", length = 200)
+    private String paymentMethod;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -43,28 +45,22 @@ public class Order {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
-    @Column(name = "shipping_address", nullable = false, length = 500)
-    private String shippingAddress;
-
-    @Column(name = "payment_method", length = 200)
-    private String paymentMethod;
-
     public Order() {
     }
 
-    public Order(Long id, String orderNumber, User user, OrderStatus status, BigDecimal totalAmount,
-                 List<OrderItem> orderItems, LocalDateTime createdAt, LocalDateTime updatedAt,
-                 String shippingAddress, String paymentMethod) {
+    public Order(Long id, String orderNumber, User user, Address address, OrderStatus status,
+                 BigDecimal totalAmount, List<OrderItem> orderItems, String paymentMethod,
+                 LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
         this.orderNumber = orderNumber;
         this.user = user;
+        this.address = address;
         this.status = status;
         this.totalAmount = totalAmount;
         this.orderItems = orderItems;
+        this.paymentMethod = paymentMethod;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
-        this.shippingAddress = shippingAddress;
-        this.paymentMethod = paymentMethod;
     }
 
     @PrePersist
@@ -100,6 +96,10 @@ public class Order {
         return user;
     }
 
+    public Address getAddress() {
+        return address;
+    }
+
     public OrderStatus getStatus() {
         return status;
     }
@@ -110,6 +110,10 @@ public class Order {
 
     public List<OrderItem> getOrderItems() {
         return orderItems;
+    }
+
+    public String getPaymentMethod() {
+        return paymentMethod;
     }
 
     public LocalDateTime getCreatedAt() {
@@ -132,6 +136,10 @@ public class Order {
         this.user = user;
     }
 
+    public void setAddress(Address address) {
+        this.address = address;
+    }
+
     public void setStatus(OrderStatus status) {
         this.status = status;
     }
@@ -142,18 +150,6 @@ public class Order {
 
     public void setOrderItems(List<OrderItem> orderItems) {
         this.orderItems = orderItems;
-    }
-
-    public String getShippingAddress() {
-        return shippingAddress;
-    }
-
-    public void setShippingAddress(String shippingAddress) {
-        this.shippingAddress = shippingAddress;
-    }
-
-    public String getPaymentMethod() {
-        return paymentMethod;
     }
 
     public void setPaymentMethod(String paymentMethod) {
