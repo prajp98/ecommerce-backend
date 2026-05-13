@@ -12,7 +12,15 @@ public class OrderResponse {
     private BigDecimal totalAmount;
     private Long userId;
     private String userEmail;
-    private String shippingAddress;
+
+    private Long addressId;
+    private String addressLine1;
+    private String addressLine2;
+    private String city;
+    private String state;
+    private String zipCode;
+    private String country;
+
     private String paymentMethod;
     private List<OrderItemResponse> orderItems;
     private LocalDateTime createdAt;
@@ -22,15 +30,24 @@ public class OrderResponse {
     }
 
     public OrderResponse(Long orderId, String orderNumber, String status, BigDecimal totalAmount,
-                         Long userId, String userEmail, String shippingAddress, String paymentMethod,
-                         List<OrderItemResponse> orderItems, LocalDateTime createdAt, String message) {
+                         Long userId, String userEmail,
+                         Long addressId, String addressLine1, String addressLine2, String city,
+                         String state, String zipCode, String country,
+                         String paymentMethod, List<OrderItemResponse> orderItems,
+                         LocalDateTime createdAt, String message) {
         this.orderId = orderId;
         this.orderNumber = orderNumber;
         this.status = status;
         this.totalAmount = totalAmount;
         this.userId = userId;
         this.userEmail = userEmail;
-        this.shippingAddress = shippingAddress;
+        this.addressId = addressId;
+        this.addressLine1 = addressLine1;
+        this.addressLine2 = addressLine2;
+        this.city = city;
+        this.state = state;
+        this.zipCode = zipCode;
+        this.country = country;
         this.paymentMethod = paymentMethod;
         this.orderItems = orderItems;
         this.createdAt = createdAt;
@@ -61,8 +78,32 @@ public class OrderResponse {
         return userEmail;
     }
 
-    public String getShippingAddress() {
-        return shippingAddress;
+    public Long getAddressId() {
+        return addressId;
+    }
+
+    public String getAddressLine1() {
+        return addressLine1;
+    }
+
+    public String getAddressLine2() {
+        return addressLine2;
+    }
+
+    public String getCity() {
+        return city;
+    }
+
+    public String getState() {
+        return state;
+    }
+
+    public String getZipCode() {
+        return zipCode;
+    }
+
+    public String getCountry() {
+        return country;
     }
 
     public String getPaymentMethod() {
@@ -105,8 +146,32 @@ public class OrderResponse {
         this.userEmail = userEmail;
     }
 
-    public void setShippingAddress(String shippingAddress) {
-        this.shippingAddress = shippingAddress;
+    public void setAddressId(Long addressId) {
+        this.addressId = addressId;
+    }
+
+    public void setAddressLine1(String addressLine1) {
+        this.addressLine1 = addressLine1;
+    }
+
+    public void setAddressLine2(String addressLine2) {
+        this.addressLine2 = addressLine2;
+    }
+
+    public void setCity(String city) {
+        this.city = city;
+    }
+
+    public void setState(String state) {
+        this.state = state;
+    }
+
+    public void setZipCode(String zipCode) {
+        this.zipCode = zipCode;
+    }
+
+    public void setCountry(String country) {
+        this.country = country;
     }
 
     public void setPaymentMethod(String paymentMethod) {
