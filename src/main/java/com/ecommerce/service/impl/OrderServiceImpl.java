@@ -10,6 +10,8 @@ import com.ecommerce.entity.OrderStatus;
 import com.ecommerce.entity.Product;
 import com.ecommerce.entity.User;
 import com.ecommerce.exception.EmptyCartException;
+import com.ecommerce.exception.ForbiddenOperationException;
+import com.ecommerce.exception.InsufficientStockException;
 import com.ecommerce.exception.ResourceNotFoundException;
 import com.ecommerce.repository.CartItemRepository;
 import com.ecommerce.repository.OrderRepository;
@@ -69,11 +71,11 @@ public class OrderServiceImpl implements OrderService {
             Product product = cartItem.getProduct();
 
             if (!product.isActive()) {
-                throw new IllegalArgumentException("Product is not active: " + product.getName());
+                throw new ForbiddenOperationException("Product is not active: " + product.getName());
             }
 
             if (cartItem.getQuantity() > product.getStock()) {
-                throw new IllegalArgumentException("Insufficient stock for product: " + product.getName());
+                throw new InsufficientStockException("Insufficient stock for product: " + product.getName());
             }
 
             BigDecimal itemTotal = product.getPrice()
@@ -118,7 +120,7 @@ public class OrderServiceImpl implements OrderService {
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + orderId));
 
         if (!order.getUser().getId().equals(user.getId())) {
-            throw new IllegalArgumentException("You cannot access another user's order");
+            throw new ForbiddenOperationException("You cannot access another user's order");
         }
 
         return toResponse(order, "Order fetched successfully");

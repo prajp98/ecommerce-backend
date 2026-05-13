@@ -7,6 +7,8 @@ import com.ecommerce.entity.CartItem;
 import com.ecommerce.entity.Product;
 import com.ecommerce.entity.User;
 import com.ecommerce.exception.DuplicateResourceException;
+import com.ecommerce.exception.ForbiddenOperationException;
+import com.ecommerce.exception.InsufficientStockException;
 import com.ecommerce.exception.ResourceNotFoundException;
 import com.ecommerce.repository.CartItemRepository;
 import com.ecommerce.repository.ProductRepository;
@@ -40,7 +42,7 @@ public class CartServiceImpl implements CartService {
         Product product = getActiveProductById(request.getProductId());
 
         if (request.getQuantity() > product.getStock()) {
-            throw new IllegalArgumentException("Requested quantity exceeds available stock");
+            throw new InsufficientStockException("Requested quantity exceeds available stock");
         }
 
         CartItem existingCartItem = cartItemRepository
@@ -51,7 +53,7 @@ public class CartServiceImpl implements CartService {
             int newQuantity = existingCartItem.getQuantity() + request.getQuantity();
 
             if (newQuantity > product.getStock()) {
-                throw new IllegalArgumentException("Total quantity exceeds available stock");
+                throw new InsufficientStockException("Total quantity exceeds available stock");
             }
 
             existingCartItem.setQuantity(newQuantity);
@@ -77,13 +79,13 @@ public class CartServiceImpl implements CartService {
                 .orElseThrow(() -> new ResourceNotFoundException("Cart item not found with id: " + cartItemId));
 
         if (!cartItem.getUser().getId().equals(user.getId())) {
-            throw new IllegalArgumentException("You cannot update another user's cart item");
+            throw new ForbiddenOperationException("You cannot update another user's cart item");
         }
 
         Product product = cartItem.getProduct();
 
         if (request.getQuantity() > product.getStock()) {
-            throw new IllegalArgumentException("Requested quantity exceeds available stock");
+            throw new InsufficientStockException("Requested quantity exceeds available stock");
         }
 
         cartItem.setQuantity(request.getQuantity());
@@ -101,7 +103,7 @@ public class CartServiceImpl implements CartService {
                 .orElseThrow(() -> new ResourceNotFoundException("Cart item not found with id: " + cartItemId));
 
         if (!cartItem.getUser().getId().equals(user.getId())) {
-            throw new IllegalArgumentException("You cannot remove another user's cart item");
+            throw new ForbiddenOperationException("You cannot remove another user's cart item");
         }
 
         CartItemResponse response = toResponse(cartItem, "Cart item removed successfully");
@@ -131,7 +133,7 @@ public class CartServiceImpl implements CartService {
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + productId));
 
         if (!product.isActive()) {
-            throw new IllegalArgumentException("Product is not active");
+            throw new ForbiddenOperationException("Product is not active");
         }
 
         return product;
