@@ -2,6 +2,8 @@ package com.ecommerce.repository;
 
 import com.ecommerce.entity.Order;
 import com.ecommerce.entity.OrderStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
@@ -13,9 +15,13 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
 
     List<Order> findByUserId(Long userId);
 
-    boolean existsByOrderNumber(String orderNumber);
-
     List<Order> findByStatus(OrderStatus status);
 
     List<Order> findByStatusAndUserId(OrderStatus status, Long userId);
+
+    Page<Order> findByUserId(Long userId, Pageable pageable);
+
+    Page<Order> findByUserIdAndStatus(Long userId, OrderStatus status, Pageable pageable);
+
+    boolean existsByOrderNumber(String orderNumber);
 }
