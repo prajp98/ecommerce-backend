@@ -5,6 +5,8 @@ import com.ecommerce.dto.request.UpdateOrderStatusRequest;
 import com.ecommerce.dto.response.OrderResponse;
 import com.ecommerce.service.OrderService;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -73,6 +75,23 @@ public class OrderController {
                                                      Authentication authentication) {
         String userEmail = authentication.getName();
         OrderResponse response = orderService.cancelOrder(userEmail, orderId);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/me/page")
+    public ResponseEntity<Page<OrderResponse>> getMyOrdersPaged(Authentication authentication,
+                                                                Pageable pageable) {
+        String userEmail = authentication.getName();
+        Page<OrderResponse> response = orderService.getMyOrders(userEmail, pageable);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/me/status/{status}")
+    public ResponseEntity<Page<OrderResponse>> getMyOrdersByStatus(Authentication authentication,
+                                                                   @PathVariable String status,
+                                                                   Pageable pageable) {
+        String userEmail = authentication.getName();
+        Page<OrderResponse> response = orderService.getMyOrdersByStatus(userEmail, status, pageable);
         return ResponseEntity.ok(response);
     }
 }
