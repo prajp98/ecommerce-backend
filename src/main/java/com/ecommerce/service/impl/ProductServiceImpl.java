@@ -6,13 +6,14 @@ import com.ecommerce.entity.Category;
 import com.ecommerce.entity.Product;
 import com.ecommerce.exception.DuplicateResourceException;
 import com.ecommerce.exception.ResourceNotFoundException;
+import com.ecommerce.mapper.ProductMapper;
 import com.ecommerce.repository.CategoryRepository;
 import com.ecommerce.repository.ProductRepository;
 import com.ecommerce.service.ProductService;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -22,11 +23,14 @@ public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
+    private final ProductMapper productMapper;
 
     public ProductServiceImpl(ProductRepository productRepository,
-                              CategoryRepository categoryRepository) {
+                              CategoryRepository categoryRepository,
+                              ProductMapper productMapper) {
         this.productRepository = productRepository;
         this.categoryRepository = categoryRepository;
+        this.productMapper = productMapper;
     }
 
     @Override
@@ -34,8 +38,7 @@ public class ProductServiceImpl implements ProductService {
     public ProductResponse createProduct(ProductRequest request) {
         String name = request.getName().trim();
 
-        boolean exists = productRepository.existsByName(name);
-        if (exists) {
+        if (productRepository.existsByName(name)) {
             throw new DuplicateResourceException("Product already exists");
         }
 
@@ -53,7 +56,10 @@ public class ProductServiceImpl implements ProductService {
         product.setActive(true);
 
         Product savedProduct = productRepository.save(product);
-        return toResponse(savedProduct, "Product created successfully");
+
+        ProductResponse response = productMapper.toResponse(savedProduct);
+        response.setMessage("Product created successfully");
+        return response;
     }
 
     @Override
@@ -80,7 +86,10 @@ public class ProductServiceImpl implements ProductService {
         product.setCategory(category);
 
         Product updatedProduct = productRepository.save(product);
-        return toResponse(updatedProduct, "Product updated successfully");
+
+        ProductResponse response = productMapper.toResponse(updatedProduct);
+        response.setMessage("Product updated successfully");
+        return response;
     }
 
     @Override
@@ -88,30 +97,44 @@ public class ProductServiceImpl implements ProductService {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + id));
 
-        return toResponse(product, "Product fetched successfully");
+        ProductResponse response = productMapper.toResponse(product);
+        response.setMessage("Product fetched successfully");
+        return response;
     }
 
     @Override
     public List<ProductResponse> getAllProducts() {
-        List<Product> products = productRepository.findAll();
-        return products.stream()
-                .map(product -> toResponse(product, "Product fetched successfully"))
+        return productRepository.findAll()
+                .stream()
+                .map(product -> {
+                    ProductResponse response = productMapper.toResponse(product);
+                    response.setMessage("Product fetched successfully");
+                    return response;
+                })
                 .toList();
     }
 
     @Override
     public List<ProductResponse> getAllActiveProducts() {
-        List<Product> products = productRepository.findByActiveTrue();
-        return products.stream()
-                .map(product -> toResponse(product, "Product fetched successfully"))
+        return productRepository.findByActiveTrue()
+                .stream()
+                .map(product -> {
+                    ProductResponse response = productMapper.toResponse(product);
+                    response.setMessage("Product fetched successfully");
+                    return response;
+                })
                 .toList();
     }
 
     @Override
     public List<ProductResponse> getProductsByCategoryId(Long categoryId) {
-        List<Product> products = productRepository.findByCategoryId(categoryId);
-        return products.stream()
-                .map(product -> toResponse(product, "Product fetched successfully"))
+        return productRepository.findByCategoryId(categoryId)
+                .stream()
+                .map(product -> {
+                    ProductResponse response = productMapper.toResponse(product);
+                    response.setMessage("Product fetched successfully");
+                    return response;
+                })
                 .toList();
     }
 
@@ -123,7 +146,10 @@ public class ProductServiceImpl implements ProductService {
 
         product.setActive(false);
         Product savedProduct = productRepository.save(product);
-        return toResponse(savedProduct, "Product deactivated successfully");
+
+        ProductResponse response = productMapper.toResponse(savedProduct);
+        response.setMessage("Product deactivated successfully");
+        return response;
     }
 
     @Override
@@ -134,52 +160,51 @@ public class ProductServiceImpl implements ProductService {
 
         product.setActive(true);
         Product savedProduct = productRepository.save(product);
-        return toResponse(savedProduct, "Product activated successfully");
-    }
 
-    private ProductResponse toResponse(Product product, String message) {
-        ProductResponse response = new ProductResponse();
-        response.setId(product.getId());
-        response.setName(product.getName());
-        response.setDescription(product.getDescription());
-        response.setPrice(product.getPrice());
-        response.setStock(product.getStock());
-        response.setCategoryId(product.getCategory().getId());
-        response.setCategoryName(product.getCategory().getName());
-        response.setActive(product.isActive());
-        response.setMessage(message);
+        ProductResponse response = productMapper.toResponse(savedProduct);
+        response.setMessage("Product activated successfully");
         return response;
     }
 
     @Override
     public Page<ProductResponse> getActiveProducts(Pageable pageable) {
-        Page<Product> productsPage = productRepository.findByActiveTrue(pageable);
-        return productsPage.map(product -> toResponse(product, "Product fetched successfully"));
+        return productRepository.findByActiveTrue(pageable)
+                .map(product -> {
+                    ProductResponse response = productMapper.toResponse(product);
+                    response.setMessage("Product fetched successfully");
+                    return response;
+                });
     }
 
     @Override
     public Page<ProductResponse> searchActiveProducts(String keyword, Pageable pageable) {
-        Page<Product> productsPage =
-                productRepository.findByNameContainingIgnoreCaseAndActiveTrue(keyword, pageable);
-
-        return productsPage.map(product -> toResponse(product, "Product fetched successfully"));
+        return productRepository.findByNameContainingIgnoreCaseAndActiveTrue(keyword, pageable)
+                .map(product -> {
+                    ProductResponse response = productMapper.toResponse(product);
+                    response.setMessage("Product fetched successfully");
+                    return response;
+                });
     }
 
     @Override
     public Page<ProductResponse> getActiveProductsByCategory(Long categoryId, Pageable pageable) {
-        Page<Product> productsPage = productRepository.findByCategoryIdAndActiveTrue(categoryId, pageable);
-        return productsPage.map(product -> toResponse(product, "Product fetched successfully"));
+        return productRepository.findByActiveTrueAndCategoryId(categoryId, pageable)
+                .map(product -> {
+                    ProductResponse response = productMapper.toResponse(product);
+                    response.setMessage("Product fetched successfully");
+                    return response;
+                });
     }
 
     @Override
-    public Page<ProductResponse> searchActiveProductsByPriceRange(BigDecimal minPrice, BigDecimal maxPrice, Pageable pageable) {
-        Page<Product> productsPage = productRepository.findByActiveTrueAndPriceBetween(minPrice, maxPrice, pageable);
-        return productsPage.map(product -> toResponse(product, "Product fetched successfully"));
-    }
-
-    @Override
-    public Page<ProductResponse> searchActiveProductsByCategory(Long categoryId, Pageable pageable) {
-        Page<Product> productsPage = productRepository.findByActiveTrueAndCategoryId(categoryId, pageable);
-        return productsPage.map(product -> toResponse(product, "Product fetched successfully"));
+    public Page<ProductResponse> searchActiveProductsByPriceRange(BigDecimal minPrice,
+                                                                  BigDecimal maxPrice,
+                                                                  Pageable pageable) {
+        return productRepository.findByActiveTrueAndPriceBetween(minPrice, maxPrice, pageable)
+                .map(product -> {
+                    ProductResponse response = productMapper.toResponse(product);
+                    response.setMessage("Product fetched successfully");
+                    return response;
+                });
     }
 }
