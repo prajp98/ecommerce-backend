@@ -11,6 +11,8 @@ import com.ecommerce.exception.InsufficientStockException;
 import com.ecommerce.exception.ResourceNotFoundException;
 import com.ecommerce.repository.*;
 import com.ecommerce.service.OrderService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -232,5 +234,24 @@ public class OrderServiceImpl implements OrderService {
         Order savedOrder = orderRepository.save(order);
 
         return toResponse(savedOrder, "Order cancelled successfully");
+    }
+
+    @Override
+    public Page<OrderResponse> getMyOrders(String userEmail, Pageable pageable) {
+        User user = getUserByEmail(userEmail);
+
+        Page<Order> orders = orderRepository.findByUserId(user.getId(), pageable);
+
+        return orders.map(order -> toResponse(order, "Order fetched successfully"));
+    }
+
+    @Override
+    public Page<OrderResponse> getMyOrdersByStatus(String userEmail, String status, Pageable pageable) {
+        User user = getUserByEmail(userEmail);
+        OrderStatus orderStatus = OrderStatus.valueOf(status.toUpperCase());
+
+        Page<Order> orders = orderRepository.findByUserIdAndStatus(user.getId(), orderStatus, pageable);
+
+        return orders.map(order -> toResponse(order, "Order fetched successfully"));
     }
 }
