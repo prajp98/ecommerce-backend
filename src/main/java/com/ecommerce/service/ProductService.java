@@ -32,7 +32,9 @@ public interface ProductService {
 
     Page<ProductResponse> getActiveProductsByCategory(Long categoryId, Pageable pageable);
 
-    Page<ProductResponse> searchActiveProductsByPriceRange(BigDecimal minPrice, BigDecimal maxPrice, Pageable pageable);
-
-    Page<ProductResponse> searchActiveProductsByCategory(Long categoryId, Pageable pageable);
+    Page<ProductResponse> searchActiveProductsByPriceRange(
+            BigDecimal minPrice,
+            BigDecimal maxPrice,
+            Pageable pageable
+    );
 }
