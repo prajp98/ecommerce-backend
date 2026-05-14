@@ -5,6 +5,7 @@ import com.ecommerce.dto.response.CategoryResponse;
 import com.ecommerce.entity.Category;
 import com.ecommerce.exception.DuplicateResourceException;
 import com.ecommerce.exception.ResourceNotFoundException;
+import com.ecommerce.mapper.CategoryMapper;
 import com.ecommerce.repository.CategoryRepository;
 import com.ecommerce.service.CategoryService;
 import org.springframework.stereotype.Service;
@@ -15,9 +16,12 @@ import java.util.List;
 @Service
 public class CategoryServiceImpl implements CategoryService {
 
+    private final CategoryMapper categoryMapper;
     private final CategoryRepository categoryRepository;
 
-    public CategoryServiceImpl(CategoryRepository categoryRepository) {
+    public CategoryServiceImpl(CategoryMapper categoryMapper,
+                               CategoryRepository categoryRepository) {
+        this.categoryMapper = categoryMapper;
         this.categoryRepository = categoryRepository;
     }
 
@@ -37,7 +41,10 @@ public class CategoryServiceImpl implements CategoryService {
         category.setActive(true);
 
         Category savedCategory = categoryRepository.save(category);
-        return toResponse(savedCategory, "Category created successfully");
+
+        CategoryResponse response = categoryMapper.toResponse(savedCategory);
+        response.setMessage("Category created successfully");
+        return response;
     }
 
     @Override
@@ -56,7 +63,9 @@ public class CategoryServiceImpl implements CategoryService {
         category.setDescription(request.getDescription());
 
         Category updatedCategory = categoryRepository.save(category);
-        return toResponse(updatedCategory, "Category updated successfully");
+        CategoryResponse response = categoryMapper.toResponse(updatedCategory);
+        response.setMessage("Category updated successfully");
+        return response;
     }
 
     @Override
@@ -64,14 +73,20 @@ public class CategoryServiceImpl implements CategoryService {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + id));
 
-        return toResponse(category, "Category fetched successfully");
+        CategoryResponse response = categoryMapper.toResponse(category);
+        response.setMessage("Category fetched successfully");
+        return response;
     }
 
     @Override
     public List<CategoryResponse> getAllCategories() {
-        List<Category> categories = categoryRepository.findAll();
-        return categories.stream()
-                .map(category -> toResponse(category, "Category fetched successfully"))
+        return categoryRepository.findAll()
+                .stream()
+                .map(category -> {
+                    CategoryResponse response = categoryMapper.toResponse(category);
+                    response.setMessage("Category fetched successfully");
+                    return response;
+                })
                 .toList();
     }
 
@@ -83,7 +98,10 @@ public class CategoryServiceImpl implements CategoryService {
 
         category.setActive(false);
         Category savedCategory = categoryRepository.save(category);
-        return toResponse(savedCategory, "Category deactivated successfully");
+
+        CategoryResponse response = categoryMapper.toResponse(savedCategory);
+        response.setMessage("Category deactivated successfully");
+        return response;
     }
 
     @Override
@@ -94,16 +112,9 @@ public class CategoryServiceImpl implements CategoryService {
 
         category.setActive(true);
         Category savedCategory = categoryRepository.save(category);
-        return toResponse(savedCategory, "Category activated successfully");
-    }
 
-    private CategoryResponse toResponse(Category category, String message) {
-        CategoryResponse response = new CategoryResponse();
-        response.setId(category.getId());
-        response.setName(category.getName());
-        response.setDescription(category.getDescription());
-        response.setActive(category.isActive());
-        response.setMessage(message);
+        CategoryResponse response = categoryMapper.toResponse(savedCategory);
+        response.setMessage("Category activated successfully");
         return response;
     }
 }
