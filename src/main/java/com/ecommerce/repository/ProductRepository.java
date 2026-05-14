@@ -5,6 +5,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
@@ -23,4 +24,10 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     Page<Product> findByNameContainingIgnoreCaseAndActiveTrue(String keyword, Pageable pageable);
 
     Page<Product> findByCategoryIdAndActiveTrue(Long categoryId, Pageable pageable);
+
+    Page<Product> findByActiveTrueAndPriceBetween(BigDecimal minPrice, BigDecimal maxPrice, Pageable pageable);
+
+    Page<Product> findByActiveTrueAndCategoryId(Long categoryId, Pageable pageable);
+
+    Page<Product> findByActiveTrueAndNameContainingIgnoreCase(String keyword, Pageable pageable);
 }
