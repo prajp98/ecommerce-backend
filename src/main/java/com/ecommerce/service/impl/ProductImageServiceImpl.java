@@ -5,6 +5,7 @@ import com.ecommerce.dto.response.ProductImageResponse;
 import com.ecommerce.entity.Product;
 import com.ecommerce.entity.ProductImage;
 import com.ecommerce.exception.ResourceNotFoundException;
+import com.ecommerce.mapper.ProductImageMapper;
 import com.ecommerce.repository.ProductImageRepository;
 import com.ecommerce.repository.ProductRepository;
 import com.ecommerce.service.ProductImageService;
@@ -18,11 +19,14 @@ public class ProductImageServiceImpl implements ProductImageService {
 
     private final ProductRepository productRepository;
     private final ProductImageRepository productImageRepository;
+    private final ProductImageMapper productImageMapper;
 
     public ProductImageServiceImpl(ProductRepository productRepository,
-                                   ProductImageRepository productImageRepository) {
+                                   ProductImageRepository productImageRepository,
+                                   ProductImageMapper productImageMapper) {
         this.productRepository = productRepository;
         this.productImageRepository = productImageRepository;
+        this.productImageMapper = productImageMapper;
     }
 
     @Override
@@ -44,14 +48,8 @@ public class ProductImageServiceImpl implements ProductImageService {
 
         ProductImage savedImage = productImageRepository.save(image);
 
-        ProductImageResponse response = new ProductImageResponse(
-                savedImage.getId(),
-                savedImage.getImageUrl(),
-                savedImage.isPrimaryImage(),
-                product.getId(),
-                "Image added successfully"
-        );
-
+        ProductImageResponse response = productImageMapper.toResponse(savedImage);
+        response.setMessage("Image added successfully");
         return response;
     }
 
@@ -63,13 +61,11 @@ public class ProductImageServiceImpl implements ProductImageService {
         List<ProductImage> images = productImageRepository.findByProductId(product.getId());
 
         return images.stream()
-                .map(image -> new ProductImageResponse(
-                        image.getId(),
-                        image.getImageUrl(),
-                        image.isPrimaryImage(),
-                        product.getId(),
-                        "Image fetched successfully"
-                ))
+                .map(image -> {
+                    ProductImageResponse response = productImageMapper.toResponse(image);
+                    response.setMessage("Image fetched successfully");
+                    return response;
+                })
                 .toList();
     }
 
@@ -83,14 +79,8 @@ public class ProductImageServiceImpl implements ProductImageService {
         product.removeImage(image);
         productImageRepository.delete(image);
 
-        ProductImageResponse response = new ProductImageResponse(
-                image.getId(),
-                image.getImageUrl(),
-                image.isPrimaryImage(),
-                product.getId(),
-                "Image deleted successfully"
-        );
-
+        ProductImageResponse response = productImageMapper.toResponse(image);
+        response.setMessage("Image deleted successfully");
         return response;
     }
 }
