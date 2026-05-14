@@ -13,6 +13,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+
+import java.math.BigDecimal;
 import java.util.List;
 
 @Service
@@ -166,6 +168,18 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public Page<ProductResponse> getActiveProductsByCategory(Long categoryId, Pageable pageable) {
         Page<Product> productsPage = productRepository.findByCategoryIdAndActiveTrue(categoryId, pageable);
+        return productsPage.map(product -> toResponse(product, "Product fetched successfully"));
+    }
+
+    @Override
+    public Page<ProductResponse> searchActiveProductsByPriceRange(BigDecimal minPrice, BigDecimal maxPrice, Pageable pageable) {
+        Page<Product> productsPage = productRepository.findByActiveTrueAndPriceBetween(minPrice, maxPrice, pageable);
+        return productsPage.map(product -> toResponse(product, "Product fetched successfully"));
+    }
+
+    @Override
+    public Page<ProductResponse> searchActiveProductsByCategory(Long categoryId, Pageable pageable) {
+        Page<Product> productsPage = productRepository.findByActiveTrueAndCategoryId(categoryId, pageable);
         return productsPage.map(product -> toResponse(product, "Product fetched successfully"));
     }
 }
