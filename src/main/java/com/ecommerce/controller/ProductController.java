@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
@@ -81,6 +82,21 @@ public class ProductController {
     @PatchMapping("/{id}/activate")
     public ResponseEntity<ProductResponse> activateProduct(@PathVariable Long id) {
         ProductResponse response = productService.activateProduct(id);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/search/by-price")
+    public ResponseEntity<Page<ProductResponse>> searchByPriceRange(@RequestParam BigDecimal minPrice,
+                                                                    @RequestParam BigDecimal maxPrice,
+                                                                    Pageable pageable) {
+        Page<ProductResponse> response = productService.searchActiveProductsByPriceRange(minPrice, maxPrice, pageable);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/search/by-category/{categoryId}")
+    public ResponseEntity<Page<ProductResponse>> searchByCategory(@PathVariable Long categoryId,
+                                                                  Pageable pageable) {
+        Page<ProductResponse> response = productService.searchActiveProductsByCategory(categoryId, pageable);
         return ResponseEntity.ok(response);
     }
 }
