@@ -50,10 +50,7 @@ public class AddressServiceImpl implements AddressService {
         address.setDefaultAddress(request.isDefaultAddress());
 
         Address savedAddress = addressRepository.save(address);
-
-        AddressResponse response = addressMapper.toResponse(savedAddress);
-        response.setMessage("Address added successfully");
-        return response;
+        return buildResponse(savedAddress, "Address added successfully");
     }
 
     @Override
@@ -81,10 +78,7 @@ public class AddressServiceImpl implements AddressService {
         address.setDefaultAddress(request.isDefaultAddress());
 
         Address updatedAddress = addressRepository.save(address);
-
-        AddressResponse response = addressMapper.toResponse(updatedAddress);
-        response.setMessage("Address updated successfully");
-        return response;
+        return buildResponse(updatedAddress, "Address updated successfully");
     }
 
     @Override
@@ -99,9 +93,7 @@ public class AddressServiceImpl implements AddressService {
             throw new ForbiddenOperationException("You cannot delete another user's address");
         }
 
-        AddressResponse response = addressMapper.toResponse(address);
-        response.setMessage("Address deleted successfully");
-
+        AddressResponse response = buildResponse(address, "Address deleted successfully");
         addressRepository.delete(address);
         return response;
     }
@@ -112,11 +104,7 @@ public class AddressServiceImpl implements AddressService {
 
         return addressRepository.findByUserId(user.getId())
                 .stream()
-                .map(address -> {
-                    AddressResponse response = addressMapper.toResponse(address);
-                    response.setMessage("Address fetched successfully");
-                    return response;
-                })
+                .map(address -> buildResponse(address, "Address fetched successfully"))
                 .toList();
     }
 
@@ -136,9 +124,12 @@ public class AddressServiceImpl implements AddressService {
 
         address.setDefaultAddress(true);
         Address updatedAddress = addressRepository.save(address);
+        return buildResponse(updatedAddress, "Default address updated successfully");
+    }
 
-        AddressResponse response = addressMapper.toResponse(updatedAddress);
-        response.setMessage("Default address updated successfully");
+    private AddressResponse buildResponse(Address address, String message) {
+        AddressResponse response = addressMapper.toResponse(address);
+        response.setMessage(message);
         return response;
     }
 
