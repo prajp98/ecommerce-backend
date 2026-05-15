@@ -62,10 +62,7 @@ public class CartServiceImpl implements CartService {
             existingCartItem.setQuantity(newQuantity);
             CartItem savedCartItem = cartItemRepository.save(existingCartItem);
 
-            CartItemResponse response = cartItemMapper.toResponse(savedCartItem);
-            response.setTotalPrice(calculateTotalPrice(response.getPrice(), response.getQuantity()));
-            response.setMessage("Cart item updated successfully");
-            return response;
+            return buildResponse(savedCartItem, "Cart item updated successfully");
         }
 
         CartItem cartItem = new CartItem();
@@ -74,11 +71,7 @@ public class CartServiceImpl implements CartService {
         cartItem.setQuantity(request.getQuantity());
 
         CartItem savedCartItem = cartItemRepository.save(cartItem);
-
-        CartItemResponse response = cartItemMapper.toResponse(savedCartItem);
-        response.setTotalPrice(calculateTotalPrice(response.getPrice(), response.getQuantity()));
-        response.setMessage("Product added to cart successfully");
-        return response;
+        return buildResponse(savedCartItem, "Product added to cart successfully");
     }
 
     @Override
@@ -102,10 +95,7 @@ public class CartServiceImpl implements CartService {
         cartItem.setQuantity(request.getQuantity());
         CartItem savedCartItem = cartItemRepository.save(cartItem);
 
-        CartItemResponse response = cartItemMapper.toResponse(savedCartItem);
-        response.setTotalPrice(calculateTotalPrice(response.getPrice(), response.getQuantity()));
-        response.setMessage("Cart item updated successfully");
-        return response;
+        return buildResponse(savedCartItem, "Cart item updated successfully");
     }
 
     @Override
@@ -120,10 +110,7 @@ public class CartServiceImpl implements CartService {
             throw new ForbiddenOperationException("You cannot remove another user's cart item");
         }
 
-        CartItemResponse response = cartItemMapper.toResponse(cartItem);
-        response.setTotalPrice(calculateTotalPrice(response.getPrice(), response.getQuantity()));
-        response.setMessage("Cart item removed successfully");
-
+        CartItemResponse response = buildResponse(cartItem, "Cart item removed successfully");
         cartItemRepository.delete(cartItem);
         return response;
     }
@@ -134,13 +121,19 @@ public class CartServiceImpl implements CartService {
 
         return cartItemRepository.findByUserId(user.getId())
                 .stream()
-                .map(cartItem -> {
-                    CartItemResponse response = cartItemMapper.toResponse(cartItem);
-                    response.setTotalPrice(calculateTotalPrice(response.getPrice(), response.getQuantity()));
-                    response.setMessage("Cart item fetched successfully");
-                    return response;
-                })
+                .map(cartItem -> buildResponse(cartItem, "Cart item fetched successfully"))
                 .toList();
+    }
+
+    private CartItemResponse buildResponse(CartItem cartItem, String message) {
+        CartItemResponse response = cartItemMapper.toResponse(cartItem);
+        response.setTotalPrice(calculateTotalPrice(response.getPrice(), response.getQuantity()));
+        response.setMessage(message);
+        return response;
+    }
+
+    private BigDecimal calculateTotalPrice(BigDecimal price, Integer quantity) {
+        return price.multiply(BigDecimal.valueOf(quantity));
     }
 
     private User getUserByEmail(String email) {
@@ -157,9 +150,5 @@ public class CartServiceImpl implements CartService {
         }
 
         return product;
-    }
-
-    private BigDecimal calculateTotalPrice(BigDecimal price, Integer quantity) {
-        return price.multiply(BigDecimal.valueOf(quantity));
     }
 }
