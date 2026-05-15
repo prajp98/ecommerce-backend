@@ -1,6 +1,7 @@
 package com.ecommerce.controller;
 
 import com.ecommerce.dto.request.ProductRequest;
+import com.ecommerce.dto.response.ApiResponse;
 import com.ecommerce.dto.response.ProductResponse;
 import com.ecommerce.service.ProductService;
 import jakarta.validation.Valid;
@@ -11,7 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -26,77 +27,102 @@ public class ProductController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
-    public ResponseEntity<ProductResponse> createProduct(@Valid @RequestBody ProductRequest request) {
+    public ResponseEntity<ApiResponse<ProductResponse>> createProduct(@Valid @RequestBody ProductRequest request) {
         ProductResponse response = productService.createProduct(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        return buildResponse(response, HttpStatus.CREATED);
     }
 
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
-    public ResponseEntity<ProductResponse> updateProduct(@PathVariable Long id,
-                                                         @Valid @RequestBody ProductRequest request) {
+    public ResponseEntity<ApiResponse<ProductResponse>> updateProduct(@PathVariable Long id,
+                                                                      @Valid @RequestBody ProductRequest request) {
         ProductResponse response = productService.updateProduct(id, request);
-        return ResponseEntity.ok(response);
+        return buildResponse(response, HttpStatus.OK);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ProductResponse> getProductById(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<ProductResponse>> getProductById(@PathVariable Long id) {
         ProductResponse response = productService.getProductById(id);
-        return ResponseEntity.ok(response);
+        return buildResponse(response, HttpStatus.OK);
     }
 
     @GetMapping
-    public ResponseEntity<List<ProductResponse>> getAllProducts() {
+    public ResponseEntity<ApiResponse<List<ProductResponse>>> getAllProducts() {
         List<ProductResponse> response = productService.getAllProducts();
-        return ResponseEntity.ok(response);
+        return buildResponse(response, HttpStatus.OK, "Products fetched successfully");
     }
 
     @GetMapping("/active")
-    public ResponseEntity<Page<ProductResponse>> getActiveProducts(Pageable pageable) {
+    public ResponseEntity<ApiResponse<Page<ProductResponse>>> getActiveProducts(Pageable pageable) {
         Page<ProductResponse> response = productService.getActiveProducts(pageable);
-        return ResponseEntity.ok(response);
+        return buildResponse(response, HttpStatus.OK, "Active products fetched successfully", response);
     }
 
     @GetMapping("/search")
-    public ResponseEntity<Page<ProductResponse>> searchProducts(@RequestParam String keyword,
-                                                                Pageable pageable) {
+    public ResponseEntity<ApiResponse<Page<ProductResponse>>> searchProducts(@RequestParam String keyword,
+                                                                             Pageable pageable) {
         Page<ProductResponse> response = productService.searchActiveProducts(keyword, pageable);
-        return ResponseEntity.ok(response);
+        return buildResponse(response, HttpStatus.OK, "Products fetched successfully", response);
     }
 
     @GetMapping("/category/{categoryId}")
-    public ResponseEntity<Page<ProductResponse>> getProductsByCategory(@PathVariable Long categoryId,
-                                                                       Pageable pageable) {
+    public ResponseEntity<ApiResponse<Page<ProductResponse>>> getProductsByCategory(@PathVariable Long categoryId,
+                                                                                    Pageable pageable) {
         Page<ProductResponse> response = productService.getActiveProductsByCategory(categoryId, pageable);
-        return ResponseEntity.ok(response);
+        return buildResponse(response, HttpStatus.OK, "Products fetched successfully", response);
+    }
+
+    @GetMapping("/search/by-price")
+    public ResponseEntity<ApiResponse<Page<ProductResponse>>> searchByPriceRange(@RequestParam java.math.BigDecimal minPrice,
+                                                                                 @RequestParam java.math.BigDecimal maxPrice,
+                                                                                 Pageable pageable) {
+        Page<ProductResponse> response = productService.searchActiveProductsByPriceRange(minPrice, maxPrice, pageable);
+        return buildResponse(response, HttpStatus.OK, "Products fetched successfully", response);
     }
 
     @PreAuthorize("hasRole('ADMIN')")
     @PatchMapping("/{id}/deactivate")
-    public ResponseEntity<ProductResponse> deactivateProduct(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<ProductResponse>> deactivateProduct(@PathVariable Long id) {
         ProductResponse response = productService.deactivateProduct(id);
-        return ResponseEntity.ok(response);
+        return buildResponse(response, HttpStatus.OK);
     }
 
     @PreAuthorize("hasRole('ADMIN')")
     @PatchMapping("/{id}/activate")
-    public ResponseEntity<ProductResponse> activateProduct(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<ProductResponse>> activateProduct(@PathVariable Long id) {
         ProductResponse response = productService.activateProduct(id);
-        return ResponseEntity.ok(response);
+        return buildResponse(response, HttpStatus.OK);
     }
 
-    @GetMapping("/search/by-price")
-    public ResponseEntity<Page<ProductResponse>> searchByPriceRange(@RequestParam BigDecimal minPrice,
-                                                                    @RequestParam BigDecimal maxPrice,
-                                                                    Pageable pageable) {
-        Page<ProductResponse> response = productService.searchActiveProductsByPriceRange(minPrice, maxPrice, pageable);
-        return ResponseEntity.ok(response);
+    private ResponseEntity<ApiResponse<ProductResponse>> buildResponse(ProductResponse data, HttpStatus status) {
+        ApiResponse<ProductResponse> apiResponse = new ApiResponse<>();
+        apiResponse.setTimestamp(LocalDateTime.now());
+        apiResponse.setStatus(status.value());
+        apiResponse.setMessage(data.getMessage());
+        apiResponse.setData(data);
+        return ResponseEntity.status(status).body(apiResponse);
     }
 
-    @GetMapping("/search/by-category/{categoryId}")
-    public ResponseEntity<Page<ProductResponse>> searchByCategory(@PathVariable Long categoryId,
-                                                                  Pageable pageable) {
-        Page<ProductResponse> response = productService.searchActiveProductsByCategory(categoryId, pageable);
-        return ResponseEntity.ok(response);
+    private ResponseEntity<ApiResponse<List<ProductResponse>>> buildResponse(List<ProductResponse> data,
+                                                                             HttpStatus status,
+                                                                             String message) {
+        ApiResponse<List<ProductResponse>> apiResponse = new ApiResponse<>();
+        apiResponse.setTimestamp(LocalDateTime.now());
+        apiResponse.setStatus(status.value());
+        apiResponse.setMessage(message);
+        apiResponse.setData(data);
+        return ResponseEntity.status(status).body(apiResponse);
+    }
+
+    private ResponseEntity<ApiResponse<Page<ProductResponse>>> buildResponse(Page<ProductResponse> data,
+                                                                             HttpStatus status,
+                                                                             String message,
+                                                                             Page<ProductResponse> pageData) {
+        ApiResponse<Page<ProductResponse>> apiResponse = new ApiResponse<>();
+        apiResponse.setTimestamp(LocalDateTime.now());
+        apiResponse.setStatus(status.value());
+        apiResponse.setMessage(message);
+        apiResponse.setData(pageData);
+        return ResponseEntity.status(status).body(apiResponse);
     }
 }
