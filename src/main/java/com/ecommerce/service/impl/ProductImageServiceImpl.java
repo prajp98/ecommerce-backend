@@ -32,8 +32,7 @@ public class ProductImageServiceImpl implements ProductImageService {
     @Override
     @Transactional
     public ProductImageResponse addImageToProduct(Long productId, ProductImageRequest request) {
-        Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + productId));
+        Product product = getProductById(productId);
 
         ProductImage image = new ProductImage();
         image.setImageUrl(request.getImageUrl().trim());
@@ -41,31 +40,21 @@ public class ProductImageServiceImpl implements ProductImageService {
         image.setProduct(product);
 
         if (request.isPrimaryImage()) {
-            for (ProductImage existingImage : product.getImages()) {
-                existingImage.setPrimaryImage(false);
-            }
+            product.getImages()
+                    .forEach(existingImage -> existingImage.setPrimaryImage(false));
         }
 
         ProductImage savedImage = productImageRepository.save(image);
-
-        ProductImageResponse response = productImageMapper.toResponse(savedImage);
-        response.setMessage("Image added successfully");
-        return response;
+        return buildResponse(savedImage, "Image added successfully");
     }
 
     @Override
     public List<ProductImageResponse> getImagesByProductId(Long productId) {
-        Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + productId));
+        Product product = getProductById(productId);
 
-        List<ProductImage> images = productImageRepository.findByProductId(product.getId());
-
-        return images.stream()
-                .map(image -> {
-                    ProductImageResponse response = productImageMapper.toResponse(image);
-                    response.setMessage("Image fetched successfully");
-                    return response;
-                })
+        return productImageRepository.findByProductId(product.getId())
+                .stream()
+                .map(image -> buildResponse(image, "Image fetched successfully"))
                 .toList();
     }
 
@@ -79,8 +68,17 @@ public class ProductImageServiceImpl implements ProductImageService {
         product.removeImage(image);
         productImageRepository.delete(image);
 
+        return buildResponse(image, "Image deleted successfully");
+    }
+
+    private ProductImageResponse buildResponse(ProductImage image, String message) {
         ProductImageResponse response = productImageMapper.toResponse(image);
-        response.setMessage("Image deleted successfully");
+        response.setMessage(message);
         return response;
+    }
+
+    private Product getProductById(Long productId) {
+        return productRepository.findById(productId)
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + productId));
     }
 }
