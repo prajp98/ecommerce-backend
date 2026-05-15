@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -29,7 +30,7 @@ public class ProductController {
     @PostMapping
     public ResponseEntity<ApiResponse<ProductResponse>> createProduct(@Valid @RequestBody ProductRequest request) {
         ProductResponse response = productService.createProduct(request);
-        return buildResponse(response, HttpStatus.CREATED);
+        return buildResponse(response, HttpStatus.CREATED, "Product created successfully");
     }
 
     @PreAuthorize("hasRole('ADMIN')")
@@ -37,13 +38,13 @@ public class ProductController {
     public ResponseEntity<ApiResponse<ProductResponse>> updateProduct(@PathVariable Long id,
                                                                       @Valid @RequestBody ProductRequest request) {
         ProductResponse response = productService.updateProduct(id, request);
-        return buildResponse(response, HttpStatus.OK);
+        return buildResponse(response, HttpStatus.OK, "Product updated successfully");
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<ProductResponse>> getProductById(@PathVariable Long id) {
         ProductResponse response = productService.getProductById(id);
-        return buildResponse(response, HttpStatus.OK);
+        return buildResponse(response, HttpStatus.OK, "Product fetched successfully");
     }
 
     @GetMapping
@@ -73,8 +74,8 @@ public class ProductController {
     }
 
     @GetMapping("/search/by-price")
-    public ResponseEntity<ApiResponse<Page<ProductResponse>>> searchByPriceRange(@RequestParam java.math.BigDecimal minPrice,
-                                                                                 @RequestParam java.math.BigDecimal maxPrice,
+    public ResponseEntity<ApiResponse<Page<ProductResponse>>> searchByPriceRange(@RequestParam BigDecimal minPrice,
+                                                                                 @RequestParam BigDecimal maxPrice,
                                                                                  Pageable pageable) {
         Page<ProductResponse> response = productService.searchActiveProductsByPriceRange(minPrice, maxPrice, pageable);
         return buildResponse(response, HttpStatus.OK, "Products fetched successfully", response);
@@ -84,21 +85,23 @@ public class ProductController {
     @PatchMapping("/{id}/deactivate")
     public ResponseEntity<ApiResponse<ProductResponse>> deactivateProduct(@PathVariable Long id) {
         ProductResponse response = productService.deactivateProduct(id);
-        return buildResponse(response, HttpStatus.OK);
+        return buildResponse(response, HttpStatus.OK, "Product deactivated successfully");
     }
 
     @PreAuthorize("hasRole('ADMIN')")
     @PatchMapping("/{id}/activate")
     public ResponseEntity<ApiResponse<ProductResponse>> activateProduct(@PathVariable Long id) {
         ProductResponse response = productService.activateProduct(id);
-        return buildResponse(response, HttpStatus.OK);
+        return buildResponse(response, HttpStatus.OK, "Product activated successfully");
     }
 
-    private ResponseEntity<ApiResponse<ProductResponse>> buildResponse(ProductResponse data, HttpStatus status) {
+    private ResponseEntity<ApiResponse<ProductResponse>> buildResponse(ProductResponse data,
+                                                                       HttpStatus status,
+                                                                       String message) {
         ApiResponse<ProductResponse> apiResponse = new ApiResponse<>();
         apiResponse.setTimestamp(LocalDateTime.now());
         apiResponse.setStatus(status.value());
-        apiResponse.setMessage(data.getMessage());
+        apiResponse.setMessage(message);
         apiResponse.setData(data);
         return ResponseEntity.status(status).body(apiResponse);
     }
