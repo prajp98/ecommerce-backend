@@ -2,14 +2,24 @@ package com.ecommerce.service.impl;
 
 import com.ecommerce.dto.request.PlaceOrderRequest;
 import com.ecommerce.dto.request.UpdateOrderStatusRequest;
-import com.ecommerce.dto.response.OrderItemResponse;
 import com.ecommerce.dto.response.OrderResponse;
-import com.ecommerce.entity.*;
+import com.ecommerce.entity.Address;
+import com.ecommerce.entity.CartItem;
+import com.ecommerce.entity.Order;
+import com.ecommerce.entity.OrderItem;
+import com.ecommerce.entity.OrderStatus;
+import com.ecommerce.entity.Product;
+import com.ecommerce.entity.User;
 import com.ecommerce.exception.EmptyCartException;
 import com.ecommerce.exception.ForbiddenOperationException;
 import com.ecommerce.exception.InsufficientStockException;
 import com.ecommerce.exception.ResourceNotFoundException;
-import com.ecommerce.repository.*;
+import com.ecommerce.mapper.OrderMapper;
+import com.ecommerce.repository.AddressRepository;
+import com.ecommerce.repository.CartItemRepository;
+import com.ecommerce.repository.OrderRepository;
+import com.ecommerce.repository.ProductRepository;
+import com.ecommerce.repository.UserRepository;
 import com.ecommerce.service.OrderService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -18,7 +28,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -30,17 +39,20 @@ public class OrderServiceImpl implements OrderService {
     private final CartItemRepository cartItemRepository;
     private final ProductRepository productRepository;
     private final AddressRepository addressRepository;
+    private final OrderMapper orderMapper;
 
     public OrderServiceImpl(OrderRepository orderRepository,
                             UserRepository userRepository,
                             CartItemRepository cartItemRepository,
                             ProductRepository productRepository,
-                            AddressRepository addressRepository) {
+                            AddressRepository addressRepository,
+                            OrderMapper orderMapper) {
         this.orderRepository = orderRepository;
         this.userRepository = userRepository;
         this.cartItemRepository = cartItemRepository;
         this.productRepository = productRepository;
         this.addressRepository = addressRepository;
+        this.orderMapper = orderMapper;
     }
 
     @Override
@@ -101,7 +113,7 @@ public class OrderServiceImpl implements OrderService {
         Order savedOrder = orderRepository.save(order);
         cartItemRepository.deleteAll(cartItems);
 
-        return toResponse(savedOrder, "Order placed successfully");
+        return buildResponse(savedOrder, "Order placed successfully");
     }
 
     @Override
@@ -110,7 +122,7 @@ public class OrderServiceImpl implements OrderService {
         List<Order> orders = orderRepository.findByUserId(user.getId());
 
         return orders.stream()
-                .map(order -> toResponse(order, "Order fetched successfully"))
+                .map(order -> buildResponse(order, "Order fetched successfully"))
                 .toList();
     }
 
@@ -125,23 +137,24 @@ public class OrderServiceImpl implements OrderService {
             throw new ForbiddenOperationException("You cannot access another user's order");
         }
 
-        return toResponse(order, "Order fetched successfully");
+        return buildResponse(order, "Order fetched successfully");
     }
 
     @Override
     public List<OrderResponse> getAllOrders() {
         return orderRepository.findAll()
                 .stream()
-                .map(order -> toResponse(order, "Order fetched successfully"))
+                .map(order -> buildResponse(order, "Order fetched successfully"))
                 .toList();
     }
 
     @Override
     public List<OrderResponse> getOrdersByStatus(String status) {
-        OrderStatus orderStatus = OrderStatus.valueOf(status.toUpperCase());
+        OrderStatus orderStatus = parseOrderStatus(status);
+
         return orderRepository.findByStatus(orderStatus)
                 .stream()
-                .map(order -> toResponse(order, "Order fetched successfully"))
+                .map(order -> buildResponse(order, "Order fetched successfully"))
                 .toList();
     }
 
@@ -154,58 +167,7 @@ public class OrderServiceImpl implements OrderService {
         order.setStatus(request.getStatus());
         Order savedOrder = orderRepository.save(order);
 
-        return toResponse(savedOrder, "Order status updated successfully");
-    }
-
-    private User getUserByEmail(String email) {
-        return userRepository.findByEmail(email)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + email));
-    }
-
-    private String generateOrderNumber() {
-        String datePart = LocalDate.now().toString().replace("-", "");
-        String uniquePart = UUID.randomUUID().toString().substring(0, 8).toUpperCase();
-        return "ORD-" + datePart + "-" + uniquePart;
-    }
-
-    private OrderResponse toResponse(Order order, String message) {
-        List<OrderItemResponse> itemResponses = order.getOrderItems().stream()
-                .map(item -> {
-                    BigDecimal totalPrice = item.getPriceAtPurchase()
-                            .multiply(BigDecimal.valueOf(item.getQuantity()));
-
-                    return new OrderItemResponse(
-                            item.getId(),
-                            item.getProduct().getId(),
-                            item.getProduct().getName(),
-                            item.getQuantity(),
-                            item.getPriceAtPurchase(),
-                            totalPrice
-                    );
-                })
-                .toList();
-
-        Address address = order.getAddress();
-
-        OrderResponse response = new OrderResponse();
-        response.setOrderId(order.getId());
-        response.setOrderNumber(order.getOrderNumber());
-        response.setStatus(order.getStatus().name());
-        response.setTotalAmount(order.getTotalAmount());
-        response.setUserId(order.getUser().getId());
-        response.setUserEmail(order.getUser().getEmail());
-        response.setAddressId(address.getId());
-        response.setAddressLine1(address.getLine1());
-        response.setAddressLine2(address.getLine2());
-        response.setCity(address.getCity());
-        response.setState(address.getState());
-        response.setZipCode(address.getZipCode());
-        response.setCountry(address.getCountry());
-        response.setPaymentMethod(order.getPaymentMethod());
-        response.setOrderItems(itemResponses);
-        response.setCreatedAt(order.getCreatedAt());
-        response.setMessage(message);
-        return response;
+        return buildResponse(savedOrder, "Order status updated successfully");
     }
 
     @Override
@@ -233,25 +195,48 @@ public class OrderServiceImpl implements OrderService {
         order.setStatus(OrderStatus.CANCELLED);
         Order savedOrder = orderRepository.save(order);
 
-        return toResponse(savedOrder, "Order cancelled successfully");
+        return buildResponse(savedOrder, "Order cancelled successfully");
     }
 
     @Override
     public Page<OrderResponse> getMyOrders(String userEmail, Pageable pageable) {
         User user = getUserByEmail(userEmail);
 
-        Page<Order> orders = orderRepository.findByUserId(user.getId(), pageable);
-
-        return orders.map(order -> toResponse(order, "Order fetched successfully"));
+        return orderRepository.findByUserId(user.getId(), pageable)
+                .map(order -> buildResponse(order, "Order fetched successfully"));
     }
 
     @Override
     public Page<OrderResponse> getMyOrdersByStatus(String userEmail, String status, Pageable pageable) {
         User user = getUserByEmail(userEmail);
-        OrderStatus orderStatus = OrderStatus.valueOf(status.toUpperCase());
+        OrderStatus orderStatus = parseOrderStatus(status);
 
-        Page<Order> orders = orderRepository.findByUserIdAndStatus(user.getId(), orderStatus, pageable);
+        return orderRepository.findByUserIdAndStatus(user.getId(), orderStatus, pageable)
+                .map(order -> buildResponse(order, "Order fetched successfully"));
+    }
 
-        return orders.map(order -> toResponse(order, "Order fetched successfully"));
+    private OrderResponse buildResponse(Order order, String message) {
+        OrderResponse response = orderMapper.toResponse(order);
+        response.setMessage(message);
+        return response;
+    }
+
+    private OrderStatus parseOrderStatus(String status) {
+        try {
+            return OrderStatus.valueOf(status.toUpperCase());
+        } catch (IllegalArgumentException ex) {
+            throw new ResourceNotFoundException("Invalid order status: " + status);
+        }
+    }
+
+    private User getUserByEmail(String email) {
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + email));
+    }
+
+    private String generateOrderNumber() {
+        String datePart = LocalDate.now().toString().replace("-", "");
+        String uniquePart = UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+        return "ORD-" + datePart + "-" + uniquePart;
     }
 }
