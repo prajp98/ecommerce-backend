@@ -30,8 +30,7 @@ public class CategoryServiceImpl implements CategoryService {
     public CategoryResponse createCategory(CategoryRequest request) {
         String name = request.getName().trim();
 
-        boolean exists = categoryRepository.existsByName(name);
-        if (exists) {
+        if (categoryRepository.existsByName(name)) {
             throw new DuplicateResourceException("Category already exists");
         }
 
@@ -41,10 +40,7 @@ public class CategoryServiceImpl implements CategoryService {
         category.setActive(true);
 
         Category savedCategory = categoryRepository.save(category);
-
-        CategoryResponse response = categoryMapper.toResponse(savedCategory);
-        response.setMessage("Category created successfully");
-        return response;
+        return buildResponse(savedCategory, "Category created successfully");
     }
 
     @Override
@@ -63,9 +59,7 @@ public class CategoryServiceImpl implements CategoryService {
         category.setDescription(request.getDescription());
 
         Category updatedCategory = categoryRepository.save(category);
-        CategoryResponse response = categoryMapper.toResponse(updatedCategory);
-        response.setMessage("Category updated successfully");
-        return response;
+        return buildResponse(updatedCategory, "Category updated successfully");
     }
 
     @Override
@@ -73,20 +67,14 @@ public class CategoryServiceImpl implements CategoryService {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + id));
 
-        CategoryResponse response = categoryMapper.toResponse(category);
-        response.setMessage("Category fetched successfully");
-        return response;
+        return buildResponse(category, "Category fetched successfully");
     }
 
     @Override
     public List<CategoryResponse> getAllCategories() {
         return categoryRepository.findAll()
                 .stream()
-                .map(category -> {
-                    CategoryResponse response = categoryMapper.toResponse(category);
-                    response.setMessage("Category fetched successfully");
-                    return response;
-                })
+                .map(category -> buildResponse(category, "Category fetched successfully"))
                 .toList();
     }
 
@@ -99,9 +87,7 @@ public class CategoryServiceImpl implements CategoryService {
         category.setActive(false);
         Category savedCategory = categoryRepository.save(category);
 
-        CategoryResponse response = categoryMapper.toResponse(savedCategory);
-        response.setMessage("Category deactivated successfully");
-        return response;
+        return buildResponse(savedCategory, "Category deactivated successfully");
     }
 
     @Override
@@ -113,8 +99,12 @@ public class CategoryServiceImpl implements CategoryService {
         category.setActive(true);
         Category savedCategory = categoryRepository.save(category);
 
-        CategoryResponse response = categoryMapper.toResponse(savedCategory);
-        response.setMessage("Category activated successfully");
+        return buildResponse(savedCategory, "Category activated successfully");
+    }
+
+    private CategoryResponse buildResponse(Category category, String message) {
+        CategoryResponse response = categoryMapper.toResponse(category);
+        response.setMessage(message);
         return response;
     }
 }
