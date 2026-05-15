@@ -40,7 +40,7 @@ public class CategoryServiceImpl implements CategoryService {
         category.setActive(true);
 
         Category savedCategory = categoryRepository.save(category);
-        return buildResponse(savedCategory, "Category created successfully");
+        return categoryMapper.toResponse(savedCategory);
     }
 
     @Override
@@ -59,7 +59,7 @@ public class CategoryServiceImpl implements CategoryService {
         category.setDescription(request.getDescription());
 
         Category updatedCategory = categoryRepository.save(category);
-        return buildResponse(updatedCategory, "Category updated successfully");
+        return categoryMapper.toResponse(updatedCategory);
     }
 
     @Override
@@ -67,14 +67,14 @@ public class CategoryServiceImpl implements CategoryService {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + id));
 
-        return buildResponse(category, "Category fetched successfully");
+        return categoryMapper.toResponse(category);
     }
 
     @Override
     public List<CategoryResponse> getAllCategories() {
         return categoryRepository.findAll()
                 .stream()
-                .map(category -> buildResponse(category, "Category fetched successfully"))
+                .map(categoryMapper::toResponse)
                 .toList();
     }
 
@@ -87,7 +87,7 @@ public class CategoryServiceImpl implements CategoryService {
         category.setActive(false);
         Category savedCategory = categoryRepository.save(category);
 
-        return buildResponse(savedCategory, "Category deactivated successfully");
+        return categoryMapper.toResponse(savedCategory);
     }
 
     @Override
@@ -99,12 +99,6 @@ public class CategoryServiceImpl implements CategoryService {
         category.setActive(true);
         Category savedCategory = categoryRepository.save(category);
 
-        return buildResponse(savedCategory, "Category activated successfully");
-    }
-
-    private CategoryResponse buildResponse(Category category, String message) {
-        CategoryResponse response = categoryMapper.toResponse(category);
-        response.setMessage(message);
-        return response;
+        return categoryMapper.toResponse(savedCategory);
     }
 }

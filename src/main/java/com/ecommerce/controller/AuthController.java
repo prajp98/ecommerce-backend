@@ -2,6 +2,7 @@ package com.ecommerce.controller;
 
 import com.ecommerce.dto.request.LoginRequest;
 import com.ecommerce.dto.request.RegisterRequest;
+import com.ecommerce.dto.response.ApiResponse;
 import com.ecommerce.dto.response.LoginResponse;
 import com.ecommerce.dto.response.RegisterResponse;
 import com.ecommerce.service.AuthService;
@@ -9,6 +10,8 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDateTime;
 
 @RestController
 @RequestMapping("/auth")
@@ -21,14 +24,36 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<RegisterResponse> register(@Valid @RequestBody RegisterRequest request) {
+    public ResponseEntity<ApiResponse<RegisterResponse>> register(@Valid @RequestBody RegisterRequest request) {
         RegisterResponse response = authService.register(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        return buildResponse(response, HttpStatus.CREATED, "User registered successfully");
     }
 
     @PostMapping("/login")
-    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
+    public ResponseEntity<ApiResponse<LoginResponse>> login(@Valid @RequestBody LoginRequest request) {
         LoginResponse response = authService.login(request);
-        return ResponseEntity.ok(response);
+        return buildResponse(response, HttpStatus.OK, "Login successful");
+    }
+
+    private ResponseEntity<ApiResponse<RegisterResponse>> buildResponse(RegisterResponse data,
+                                                                        HttpStatus status,
+                                                                        String message) {
+        ApiResponse<RegisterResponse> apiResponse = new ApiResponse<>();
+        apiResponse.setTimestamp(LocalDateTime.now());
+        apiResponse.setStatus(status.value());
+        apiResponse.setMessage(message);
+        apiResponse.setData(data);
+        return ResponseEntity.status(status).body(apiResponse);
+    }
+
+    private ResponseEntity<ApiResponse<LoginResponse>> buildResponse(LoginResponse data,
+                                                                     HttpStatus status,
+                                                                     String message) {
+        ApiResponse<LoginResponse> apiResponse = new ApiResponse<>();
+        apiResponse.setTimestamp(LocalDateTime.now());
+        apiResponse.setStatus(status.value());
+        apiResponse.setMessage(message);
+        apiResponse.setData(data);
+        return ResponseEntity.status(status).body(apiResponse);
     }
 }

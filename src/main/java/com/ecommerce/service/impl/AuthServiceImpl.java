@@ -57,8 +57,7 @@ public class AuthServiceImpl implements AuthService {
                 savedUser.getId(),
                 savedUser.getName(),
                 savedUser.getEmail(),
-                savedUser.getRole().name(),
-                "User registered successfully"
+                savedUser.getRole().name()
         );
     }
 
