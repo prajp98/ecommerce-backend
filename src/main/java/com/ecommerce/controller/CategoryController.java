@@ -27,7 +27,7 @@ public class CategoryController {
     @PostMapping
     public ResponseEntity<ApiResponse<CategoryResponse>> createCategory(@Valid @RequestBody CategoryRequest request) {
         CategoryResponse response = categoryService.createCategory(request);
-        return buildResponse(response, HttpStatus.CREATED);
+        return buildResponse(response, HttpStatus.CREATED, "Category created successfully");
     }
 
     @PreAuthorize("hasRole('ADMIN')")
@@ -35,13 +35,13 @@ public class CategoryController {
     public ResponseEntity<ApiResponse<CategoryResponse>> updateCategory(@PathVariable Long id,
                                                                         @Valid @RequestBody CategoryRequest request) {
         CategoryResponse response = categoryService.updateCategory(id, request);
-        return buildResponse(response, HttpStatus.OK);
+        return buildResponse(response, HttpStatus.OK, "Category updated successfully");
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<CategoryResponse>> getCategoryById(@PathVariable Long id) {
         CategoryResponse response = categoryService.getCategoryById(id);
-        return buildResponse(response, HttpStatus.OK);
+        return buildResponse(response, HttpStatus.OK, "Category fetched successfully");
     }
 
     @GetMapping
@@ -54,21 +54,23 @@ public class CategoryController {
     @PatchMapping("/{id}/deactivate")
     public ResponseEntity<ApiResponse<CategoryResponse>> deactivateCategory(@PathVariable Long id) {
         CategoryResponse response = categoryService.deactivateCategory(id);
-        return buildResponse(response, HttpStatus.OK);
+        return buildResponse(response, HttpStatus.OK, "Category deactivated successfully");
     }
 
     @PreAuthorize("hasRole('ADMIN')")
     @PatchMapping("/{id}/activate")
     public ResponseEntity<ApiResponse<CategoryResponse>> activateCategory(@PathVariable Long id) {
         CategoryResponse response = categoryService.activateCategory(id);
-        return buildResponse(response, HttpStatus.OK);
+        return buildResponse(response, HttpStatus.OK, "Category activated successfully");
     }
 
-    private ResponseEntity<ApiResponse<CategoryResponse>> buildResponse(CategoryResponse data, HttpStatus status) {
+    private ResponseEntity<ApiResponse<CategoryResponse>> buildResponse(CategoryResponse data,
+                                                                        HttpStatus status,
+                                                                        String message) {
         ApiResponse<CategoryResponse> apiResponse = new ApiResponse<>();
         apiResponse.setTimestamp(LocalDateTime.now());
         apiResponse.setStatus(status.value());
-        apiResponse.setMessage(data.getMessage());
+        apiResponse.setMessage(message);
         apiResponse.setData(data);
         return ResponseEntity.status(status).body(apiResponse);
     }
