@@ -6,6 +6,7 @@ import com.ecommerce.entity.Address;
 import com.ecommerce.entity.User;
 import com.ecommerce.exception.ForbiddenOperationException;
 import com.ecommerce.exception.ResourceNotFoundException;
+import com.ecommerce.mapper.AddressMapper;
 import com.ecommerce.repository.AddressRepository;
 import com.ecommerce.repository.UserRepository;
 import com.ecommerce.service.AddressService;
@@ -19,11 +20,14 @@ public class AddressServiceImpl implements AddressService {
 
     private final AddressRepository addressRepository;
     private final UserRepository userRepository;
+    private final AddressMapper addressMapper;
 
     public AddressServiceImpl(AddressRepository addressRepository,
-                              UserRepository userRepository) {
+                              UserRepository userRepository,
+                              AddressMapper addressMapper) {
         this.addressRepository = addressRepository;
         this.userRepository = userRepository;
+        this.addressMapper = addressMapper;
     }
 
     @Override
@@ -46,7 +50,10 @@ public class AddressServiceImpl implements AddressService {
         address.setDefaultAddress(request.isDefaultAddress());
 
         Address savedAddress = addressRepository.save(address);
-        return toResponse(savedAddress, "Address added successfully");
+
+        AddressResponse response = addressMapper.toResponse(savedAddress);
+        response.setMessage("Address added successfully");
+        return response;
     }
 
     @Override
@@ -74,7 +81,10 @@ public class AddressServiceImpl implements AddressService {
         address.setDefaultAddress(request.isDefaultAddress());
 
         Address updatedAddress = addressRepository.save(address);
-        return toResponse(updatedAddress, "Address updated successfully");
+
+        AddressResponse response = addressMapper.toResponse(updatedAddress);
+        response.setMessage("Address updated successfully");
+        return response;
     }
 
     @Override
@@ -89,7 +99,9 @@ public class AddressServiceImpl implements AddressService {
             throw new ForbiddenOperationException("You cannot delete another user's address");
         }
 
-        AddressResponse response = toResponse(address, "Address deleted successfully");
+        AddressResponse response = addressMapper.toResponse(address);
+        response.setMessage("Address deleted successfully");
+
         addressRepository.delete(address);
         return response;
     }
@@ -98,9 +110,13 @@ public class AddressServiceImpl implements AddressService {
     public List<AddressResponse> getMyAddresses(String userEmail) {
         User user = getUserByEmail(userEmail);
 
-        List<Address> addresses = addressRepository.findByUserId(user.getId());
-        return addresses.stream()
-                .map(address -> toResponse(address, "Address fetched successfully"))
+        return addressRepository.findByUserId(user.getId())
+                .stream()
+                .map(address -> {
+                    AddressResponse response = addressMapper.toResponse(address);
+                    response.setMessage("Address fetched successfully");
+                    return response;
+                })
                 .toList();
     }
 
@@ -120,7 +136,10 @@ public class AddressServiceImpl implements AddressService {
 
         address.setDefaultAddress(true);
         Address updatedAddress = addressRepository.save(address);
-        return toResponse(updatedAddress, "Default address updated successfully");
+
+        AddressResponse response = addressMapper.toResponse(updatedAddress);
+        response.setMessage("Default address updated successfully");
+        return response;
     }
 
     private User getUserByEmail(String email) {
@@ -134,20 +153,5 @@ public class AddressServiceImpl implements AddressService {
                     existingDefault.setDefaultAddress(false);
                     addressRepository.save(existingDefault);
                 });
-    }
-
-    private AddressResponse toResponse(Address address, String message) {
-        AddressResponse response = new AddressResponse();
-        response.setId(address.getId());
-        response.setLine1(address.getLine1());
-        response.setLine2(address.getLine2());
-        response.setCity(address.getCity());
-        response.setState(address.getState());
-        response.setZipCode(address.getZipCode());
-        response.setCountry(address.getCountry());
-        response.setDefaultAddress(address.isDefaultAddress());
-        response.setUserId(address.getUser().getId());
-        response.setMessage(message);
-        return response;
     }
 }
