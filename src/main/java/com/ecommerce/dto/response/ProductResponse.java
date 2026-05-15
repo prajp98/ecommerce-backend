@@ -12,13 +12,12 @@ public class ProductResponse {
     private Long categoryId;
     private String categoryName;
     private boolean active;
-    private String message;
 
     public ProductResponse() {
     }
 
     public ProductResponse(Long id, String name, String description, BigDecimal price, Integer stock,
-                           Long categoryId, String categoryName, boolean active, String message) {
+                           Long categoryId, String categoryName, boolean active) {
         this.id = id;
         this.name = name;
         this.description = description;
@@ -27,7 +26,6 @@ public class ProductResponse {
         this.categoryId = categoryId;
         this.categoryName = categoryName;
         this.active = active;
-        this.message = message;
     }
 
     public Long getId() {
@@ -62,10 +60,6 @@ public class ProductResponse {
         return active;
     }
 
-    public String getMessage() {
-        return message;
-    }
-
     public void setId(Long id) {
         this.id = id;
     }
@@ -96,9 +90,5 @@ public class ProductResponse {
 
     public void setActive(boolean active) {
         this.active = active;
-    }
-
-    public void setMessage(String message) {
-        this.message = message;
     }
 }
