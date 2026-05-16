@@ -17,6 +17,5 @@ public interface OrderMapper {
     @Mapping(source = "address.state", target = "state")
     @Mapping(source = "address.zipCode", target = "zipCode")
     @Mapping(source = "address.country", target = "country")
-    @Mapping(target = "message", ignore = true)
     OrderResponse toResponse(Order order);
 }

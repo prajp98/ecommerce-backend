@@ -13,20 +13,15 @@ public interface CategoryMapper {
 
     @Mappings({
             @Mapping(target = "id", ignore = true),
-            @Mapping(target = "active", ignore = true),
-            @Mapping(target = "createdAt", ignore = true),
-            @Mapping(target = "updatedAt", ignore = true)
+            @Mapping(target = "active", ignore = true)
     })
     Category toEntity(CategoryRequest request);
 
-    @Mapping(target = "message", ignore = true)
     CategoryResponse toResponse(Category category);
 
     @Mappings({
             @Mapping(target = "id", ignore = true),
-            @Mapping(target = "active", ignore = true),
-            @Mapping(target = "createdAt", ignore = true),
-            @Mapping(target = "updatedAt", ignore = true)
+            @Mapping(target = "active", ignore = true)
     })
     void updateEntityFromRequest(CategoryRequest request, @MappingTarget Category category);
 }

@@ -9,6 +9,5 @@ import org.mapstruct.Mapping;
 public interface ProductImageMapper {
 
     @Mapping(source = "product.id", target = "productId")
-    @Mapping(target = "message", ignore = true)
     ProductImageResponse toResponse(ProductImage productImage);
 }

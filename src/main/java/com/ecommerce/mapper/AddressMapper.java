@@ -9,6 +9,5 @@ import org.mapstruct.Mapping;
 public interface AddressMapper {
 
     @Mapping(source = "user.id", target = "userId")
-    @Mapping(target = "message", ignore = true)
     AddressResponse toResponse(Address address);
 }

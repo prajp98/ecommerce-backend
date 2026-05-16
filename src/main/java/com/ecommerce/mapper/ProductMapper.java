@@ -11,8 +11,7 @@ public interface ProductMapper {
 
     @Mappings({
             @Mapping(source = "category.id", target = "categoryId"),
-            @Mapping(source = "category.name", target = "categoryName"),
-            @Mapping(target = "message", ignore = true)
+            @Mapping(source = "category.name", target = "categoryName")
     })
     ProductResponse toResponse(Product product);
 }

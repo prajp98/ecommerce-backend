@@ -13,6 +13,5 @@ public interface CartItemMapper {
     @Mapping(source = "product.name", target = "productName")
     @Mapping(source = "product.price", target = "price")
     @Mapping(target = "totalPrice", ignore = true)
-    @Mapping(target = "message", ignore = true)
     CartItemResponse toResponse(CartItem cartItem);
 }
