@@ -6,17 +6,15 @@ public class ProductImageResponse {
     private String imageUrl;
     private boolean primaryImage;
     private Long productId;
-    private String message;
 
     public ProductImageResponse() {
     }
 
-    public ProductImageResponse(Long id, String imageUrl, boolean primaryImage, Long productId, String message) {
+    public ProductImageResponse(Long id, String imageUrl, boolean primaryImage, Long productId) {
         this.id = id;
         this.imageUrl = imageUrl;
         this.primaryImage = primaryImage;
         this.productId = productId;
-        this.message = message;
     }
 
     public Long getId() {
@@ -35,10 +33,6 @@ public class ProductImageResponse {
         return productId;
     }
 
-    public String getMessage() {
-        return message;
-    }
-
     public void setId(Long id) {
         this.id = id;
     }
@@ -53,9 +47,5 @@ public class ProductImageResponse {
 
     public void setProductId(Long productId) {
         this.productId = productId;
-    }
-
-    public void setMessage(String message) {
-        this.message = message;
     }
 }

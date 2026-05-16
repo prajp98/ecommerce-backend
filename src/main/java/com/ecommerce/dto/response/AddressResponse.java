@@ -11,14 +11,13 @@ public class AddressResponse {
     private String country;
     private boolean defaultAddress;
     private Long userId;
-    private String message;
 
     public AddressResponse() {
     }
 
     public AddressResponse(Long id, String line1, String line2, String city, String state,
                            String zipCode, String country, boolean defaultAddress,
-                           Long userId, String message) {
+                           Long userId) {
         this.id = id;
         this.line1 = line1;
         this.line2 = line2;
@@ -28,7 +27,6 @@ public class AddressResponse {
         this.country = country;
         this.defaultAddress = defaultAddress;
         this.userId = userId;
-        this.message = message;
     }
 
     public Long getId() {
@@ -67,10 +65,6 @@ public class AddressResponse {
         return userId;
     }
 
-    public String getMessage() {
-        return message;
-    }
-
     public void setId(Long id) {
         this.id = id;
     }
@@ -105,9 +99,5 @@ public class AddressResponse {
 
     public void setUserId(Long userId) {
         this.userId = userId;
-    }
-
-    public void setMessage(String message) {
-        this.message = message;
     }
 }

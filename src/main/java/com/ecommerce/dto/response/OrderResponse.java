@@ -24,7 +24,6 @@ public class OrderResponse {
     private String paymentMethod;
     private List<OrderItemResponse> orderItems;
     private LocalDateTime createdAt;
-    private String message;
 
     public OrderResponse() {
     }
@@ -34,7 +33,7 @@ public class OrderResponse {
                          Long addressId, String addressLine1, String addressLine2, String city,
                          String state, String zipCode, String country,
                          String paymentMethod, List<OrderItemResponse> orderItems,
-                         LocalDateTime createdAt, String message) {
+                         LocalDateTime createdAt) {
         this.orderId = orderId;
         this.orderNumber = orderNumber;
         this.status = status;
@@ -51,7 +50,6 @@ public class OrderResponse {
         this.paymentMethod = paymentMethod;
         this.orderItems = orderItems;
         this.createdAt = createdAt;
-        this.message = message;
     }
 
     public Long getOrderId() {
@@ -118,10 +116,6 @@ public class OrderResponse {
         return createdAt;
     }
 
-    public String getMessage() {
-        return message;
-    }
-
     public void setOrderId(Long orderId) {
         this.orderId = orderId;
     }
@@ -184,9 +178,5 @@ public class OrderResponse {
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
-    }
-
-    public void setMessage(String message) {
-        this.message = message;
     }
 }

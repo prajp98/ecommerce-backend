@@ -10,20 +10,18 @@ public class CartItemResponse {
     private BigDecimal price;
     private Integer quantity;
     private BigDecimal totalPrice;
-    private String message;
 
     public CartItemResponse() {
     }
 
     public CartItemResponse(Long cartItemId, Long productId, String productName, BigDecimal price,
-                            Integer quantity, BigDecimal totalPrice, String message) {
+                            Integer quantity, BigDecimal totalPrice) {
         this.cartItemId = cartItemId;
         this.productId = productId;
         this.productName = productName;
         this.price = price;
         this.quantity = quantity;
         this.totalPrice = totalPrice;
-        this.message = message;
     }
 
     public Long getCartItemId() {
@@ -50,10 +48,6 @@ public class CartItemResponse {
         return totalPrice;
     }
 
-    public String getMessage() {
-        return message;
-    }
-
     public void setCartItemId(Long cartItemId) {
         this.cartItemId = cartItemId;
     }
@@ -76,9 +70,5 @@ public class CartItemResponse {
 
     public void setTotalPrice(BigDecimal totalPrice) {
         this.totalPrice = totalPrice;
-    }
-
-    public void setMessage(String message) {
-        this.message = message;
     }
 }
