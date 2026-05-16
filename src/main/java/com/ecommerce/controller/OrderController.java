@@ -28,104 +28,124 @@ public class OrderController {
     }
 
     @PostMapping
-    public ResponseEntity<ApiResponse<OrderResponse>> placeOrder(@Valid @RequestBody PlaceOrderRequest request,
-                                                                 Authentication authentication) {
-        String userEmail = authentication.getName();
-        OrderResponse response = orderService.placeOrder(userEmail, request);
-        return buildResponse(response, HttpStatus.CREATED);
+    public ResponseEntity<ApiResponse<OrderResponse>> placeOrder(
+            @Valid @RequestBody PlaceOrderRequest request,
+            Authentication authentication) {
+
+        return buildResponse(
+                orderService.placeOrder(authentication.getName(), request),
+                HttpStatus.CREATED,
+                "Order placed successfully"
+        );
     }
 
     @GetMapping("/me")
-    public ResponseEntity<ApiResponse<List<OrderResponse>>> getMyOrders(Authentication authentication) {
-        String userEmail = authentication.getName();
-        List<OrderResponse> response = orderService.getMyOrders(userEmail);
-        return buildResponse(response, HttpStatus.OK, "Orders fetched successfully");
+    public ResponseEntity<ApiResponse<List<OrderResponse>>> getMyOrders(
+            Authentication authentication) {
+
+        return buildResponse(
+                orderService.getMyOrders(authentication.getName()),
+                HttpStatus.OK,
+                "Orders fetched successfully"
+        );
     }
 
     @GetMapping("/me/page")
-    public ResponseEntity<ApiResponse<Page<OrderResponse>>> getMyOrdersPaged(Authentication authentication,
-                                                                             Pageable pageable) {
-        String userEmail = authentication.getName();
-        Page<OrderResponse> response = orderService.getMyOrders(userEmail, pageable);
-        return buildResponse(response, HttpStatus.OK, "Orders fetched successfully", response);
+    public ResponseEntity<ApiResponse<Page<OrderResponse>>> getMyOrdersPaged(
+            Authentication authentication,
+            Pageable pageable) {
+
+        return buildResponse(
+                orderService.getMyOrders(authentication.getName(), pageable),
+                HttpStatus.OK,
+                "Orders fetched successfully"
+        );
     }
 
     @GetMapping("/me/status/{status}")
-    public ResponseEntity<ApiResponse<Page<OrderResponse>>> getMyOrdersByStatus(Authentication authentication,
-                                                                                @PathVariable String status,
-                                                                                Pageable pageable) {
-        String userEmail = authentication.getName();
-        Page<OrderResponse> response = orderService.getMyOrdersByStatus(userEmail, status, pageable);
-        return buildResponse(response, HttpStatus.OK, "Orders fetched successfully", response);
+    public ResponseEntity<ApiResponse<Page<OrderResponse>>> getMyOrdersByStatus(
+            Authentication authentication,
+            @PathVariable String status,
+            Pageable pageable) {
+
+        return buildResponse(
+                orderService.getMyOrdersByStatus(authentication.getName(), status, pageable),
+                HttpStatus.OK,
+                "Orders fetched successfully"
+        );
     }
 
     @GetMapping("/{orderId}")
-    public ResponseEntity<ApiResponse<OrderResponse>> getOrderById(@PathVariable Long orderId,
-                                                                   Authentication authentication) {
-        String userEmail = authentication.getName();
-        OrderResponse response = orderService.getOrderById(userEmail, orderId);
-        return buildResponse(response, HttpStatus.OK);
+    public ResponseEntity<ApiResponse<OrderResponse>> getOrderById(
+            @PathVariable Long orderId,
+            Authentication authentication) {
+
+        return buildResponse(
+                orderService.getOrderById(authentication.getName(), orderId),
+                HttpStatus.OK,
+                "Order fetched successfully"
+        );
     }
 
     @DeleteMapping("/{orderId}")
-    public ResponseEntity<ApiResponse<OrderResponse>> cancelOrder(@PathVariable Long orderId,
-                                                                  Authentication authentication) {
-        String userEmail = authentication.getName();
-        OrderResponse response = orderService.cancelOrder(userEmail, orderId);
-        return buildResponse(response, HttpStatus.OK);
+    public ResponseEntity<ApiResponse<OrderResponse>> cancelOrder(
+            @PathVariable Long orderId,
+            Authentication authentication) {
+
+        return buildResponse(
+                orderService.cancelOrder(authentication.getName(), orderId),
+                HttpStatus.OK,
+                "Order cancelled successfully"
+        );
     }
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
     public ResponseEntity<ApiResponse<List<OrderResponse>>> getAllOrders() {
-        List<OrderResponse> response = orderService.getAllOrders();
-        return buildResponse(response, HttpStatus.OK, "Orders fetched successfully");
+
+        return buildResponse(
+                orderService.getAllOrders(),
+                HttpStatus.OK,
+                "Orders fetched successfully"
+        );
     }
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/status/{status}")
-    public ResponseEntity<ApiResponse<List<OrderResponse>>> getOrdersByStatus(@PathVariable String status) {
-        List<OrderResponse> response = orderService.getOrdersByStatus(status);
-        return buildResponse(response, HttpStatus.OK, "Orders fetched successfully");
+    public ResponseEntity<ApiResponse<List<OrderResponse>>> getOrdersByStatus(
+            @PathVariable String status) {
+
+        return buildResponse(
+                orderService.getOrdersByStatus(status),
+                HttpStatus.OK,
+                "Orders fetched successfully"
+        );
     }
 
     @PreAuthorize("hasRole('ADMIN')")
     @PatchMapping("/{orderId}/status")
-    public ResponseEntity<ApiResponse<OrderResponse>> updateOrderStatus(@PathVariable Long orderId,
-                                                                        @Valid @RequestBody UpdateOrderStatusRequest request) {
-        OrderResponse response = orderService.updateOrderStatus(orderId, request);
-        return buildResponse(response, HttpStatus.OK);
+    public ResponseEntity<ApiResponse<OrderResponse>> updateOrderStatus(
+            @PathVariable Long orderId,
+            @Valid @RequestBody UpdateOrderStatusRequest request) {
+
+        return buildResponse(
+                orderService.updateOrderStatus(orderId, request),
+                HttpStatus.OK,
+                "Order status updated successfully"
+        );
     }
 
-    private ResponseEntity<ApiResponse<OrderResponse>> buildResponse(OrderResponse data, HttpStatus status) {
-        ApiResponse<OrderResponse> apiResponse = new ApiResponse<>();
-        apiResponse.setTimestamp(LocalDateTime.now());
-        apiResponse.setStatus(status.value());
-        apiResponse.setMessage(data.getMessage());
-        apiResponse.setData(data);
-        return ResponseEntity.status(status).body(apiResponse);
-    }
+    private <T> ResponseEntity<ApiResponse<T>> buildResponse(
+            T data,
+            HttpStatus status,
+            String message) {
 
-    private ResponseEntity<ApiResponse<List<OrderResponse>>> buildResponse(List<OrderResponse> data,
-                                                                           HttpStatus status,
-                                                                           String message) {
-        ApiResponse<List<OrderResponse>> apiResponse = new ApiResponse<>();
+        ApiResponse<T> apiResponse = new ApiResponse<>();
         apiResponse.setTimestamp(LocalDateTime.now());
         apiResponse.setStatus(status.value());
         apiResponse.setMessage(message);
         apiResponse.setData(data);
-        return ResponseEntity.status(status).body(apiResponse);
-    }
 
-    private ResponseEntity<ApiResponse<Page<OrderResponse>>> buildResponse(Page<OrderResponse> data,
-                                                                           HttpStatus status,
-                                                                           String message,
-                                                                           Page<OrderResponse> pageData) {
-        ApiResponse<Page<OrderResponse>> apiResponse = new ApiResponse<>();
-        apiResponse.setTimestamp(LocalDateTime.now());
-        apiResponse.setStatus(status.value());
-        apiResponse.setMessage(message);
-        apiResponse.setData(pageData);
         return ResponseEntity.status(status).body(apiResponse);
     }
 }

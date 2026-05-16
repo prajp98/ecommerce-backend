@@ -24,36 +24,42 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<ApiResponse<RegisterResponse>> register(@Valid @RequestBody RegisterRequest request) {
+    public ResponseEntity<ApiResponse<RegisterResponse>> register(
+            @Valid @RequestBody RegisterRequest request) {
+
         RegisterResponse response = authService.register(request);
-        return buildResponse(response, HttpStatus.CREATED, "User registered successfully");
+
+        return buildResponse(
+                response,
+                HttpStatus.CREATED,
+                "User registered successfully"
+        );
     }
 
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse<LoginResponse>> login(@Valid @RequestBody LoginRequest request) {
+    public ResponseEntity<ApiResponse<LoginResponse>> login(
+            @Valid @RequestBody LoginRequest request) {
+
         LoginResponse response = authService.login(request);
-        return buildResponse(response, HttpStatus.OK, "Login successful");
+
+        return buildResponse(
+                response,
+                HttpStatus.OK,
+                "Login successful"
+        );
     }
 
-    private ResponseEntity<ApiResponse<RegisterResponse>> buildResponse(RegisterResponse data,
-                                                                        HttpStatus status,
-                                                                        String message) {
-        ApiResponse<RegisterResponse> apiResponse = new ApiResponse<>();
+    private <T> ResponseEntity<ApiResponse<T>> buildResponse(
+            T data,
+            HttpStatus status,
+            String message) {
+
+        ApiResponse<T> apiResponse = new ApiResponse<>();
         apiResponse.setTimestamp(LocalDateTime.now());
         apiResponse.setStatus(status.value());
         apiResponse.setMessage(message);
         apiResponse.setData(data);
-        return ResponseEntity.status(status).body(apiResponse);
-    }
 
-    private ResponseEntity<ApiResponse<LoginResponse>> buildResponse(LoginResponse data,
-                                                                     HttpStatus status,
-                                                                     String message) {
-        ApiResponse<LoginResponse> apiResponse = new ApiResponse<>();
-        apiResponse.setTimestamp(LocalDateTime.now());
-        apiResponse.setStatus(status.value());
-        apiResponse.setMessage(message);
-        apiResponse.setData(data);
         return ResponseEntity.status(status).body(apiResponse);
     }
 }

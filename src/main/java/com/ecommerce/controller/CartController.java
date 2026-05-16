@@ -25,54 +25,64 @@ public class CartController {
     }
 
     @PostMapping("/items")
-    public ResponseEntity<ApiResponse<CartItemResponse>> addToCart(@Valid @RequestBody AddToCartRequest request,
-                                                                   Authentication authentication) {
-        String userEmail = authentication.getName();
-        CartItemResponse response = cartService.addToCart(userEmail, request);
-        return buildResponse(response, HttpStatus.OK);
+    public ResponseEntity<ApiResponse<CartItemResponse>> addToCart(
+            @Valid @RequestBody AddToCartRequest request,
+            Authentication authentication) {
+
+        return buildResponse(
+                cartService.addToCart(authentication.getName(), request),
+                HttpStatus.OK,
+                "Product added to cart successfully"
+        );
     }
 
     @PutMapping("/items/{cartItemId}")
-    public ResponseEntity<ApiResponse<CartItemResponse>> updateCartItem(@PathVariable Long cartItemId,
-                                                                        @Valid @RequestBody UpdateCartItemRequest request,
-                                                                        Authentication authentication) {
-        String userEmail = authentication.getName();
-        CartItemResponse response = cartService.updateCartItem(userEmail, cartItemId, request);
-        return buildResponse(response, HttpStatus.OK);
+    public ResponseEntity<ApiResponse<CartItemResponse>> updateCartItem(
+            @PathVariable Long cartItemId,
+            @Valid @RequestBody UpdateCartItemRequest request,
+            Authentication authentication) {
+
+        return buildResponse(
+                cartService.updateCartItem(authentication.getName(), cartItemId, request),
+                HttpStatus.OK,
+                "Cart item updated successfully"
+        );
     }
 
     @DeleteMapping("/items/{cartItemId}")
-    public ResponseEntity<ApiResponse<CartItemResponse>> removeCartItem(@PathVariable Long cartItemId,
-                                                                        Authentication authentication) {
-        String userEmail = authentication.getName();
-        CartItemResponse response = cartService.removeCartItem(userEmail, cartItemId);
-        return buildResponse(response, HttpStatus.OK);
+    public ResponseEntity<ApiResponse<CartItemResponse>> removeCartItem(
+            @PathVariable Long cartItemId,
+            Authentication authentication) {
+
+        return buildResponse(
+                cartService.removeCartItem(authentication.getName(), cartItemId),
+                HttpStatus.OK,
+                "Cart item removed successfully"
+        );
     }
 
     @GetMapping("/me")
-    public ResponseEntity<ApiResponse<List<CartItemResponse>>> getMyCart(Authentication authentication) {
-        String userEmail = authentication.getName();
-        List<CartItemResponse> response = cartService.getMyCart(userEmail);
-        return buildResponse(response, HttpStatus.OK, "Cart fetched successfully");
+    public ResponseEntity<ApiResponse<List<CartItemResponse>>> getMyCart(
+            Authentication authentication) {
+
+        return buildResponse(
+                cartService.getMyCart(authentication.getName()),
+                HttpStatus.OK,
+                "Cart fetched successfully"
+        );
     }
 
-    private ResponseEntity<ApiResponse<CartItemResponse>> buildResponse(CartItemResponse data, HttpStatus status) {
-        ApiResponse<CartItemResponse> apiResponse = new ApiResponse<>();
-        apiResponse.setTimestamp(LocalDateTime.now());
-        apiResponse.setStatus(status.value());
-        apiResponse.setMessage(data.getMessage());
-        apiResponse.setData(data);
-        return ResponseEntity.status(status).body(apiResponse);
-    }
+    private <T> ResponseEntity<ApiResponse<T>> buildResponse(
+            T data,
+            HttpStatus status,
+            String message) {
 
-    private ResponseEntity<ApiResponse<List<CartItemResponse>>> buildResponse(List<CartItemResponse> data,
-                                                                              HttpStatus status,
-                                                                              String message) {
-        ApiResponse<List<CartItemResponse>> apiResponse = new ApiResponse<>();
+        ApiResponse<T> apiResponse = new ApiResponse<>();
         apiResponse.setTimestamp(LocalDateTime.now());
         apiResponse.setStatus(status.value());
         apiResponse.setMessage(message);
         apiResponse.setData(data);
+
         return ResponseEntity.status(status).body(apiResponse);
     }
 }

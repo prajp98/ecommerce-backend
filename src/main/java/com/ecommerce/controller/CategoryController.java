@@ -25,64 +25,85 @@ public class CategoryController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
-    public ResponseEntity<ApiResponse<CategoryResponse>> createCategory(@Valid @RequestBody CategoryRequest request) {
-        CategoryResponse response = categoryService.createCategory(request);
-        return buildResponse(response, HttpStatus.CREATED, "Category created successfully");
+    public ResponseEntity<ApiResponse<CategoryResponse>> createCategory(
+            @Valid @RequestBody CategoryRequest request) {
+
+        return buildResponse(
+                categoryService.createCategory(request),
+                HttpStatus.CREATED,
+                "Category created successfully"
+        );
     }
 
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
-    public ResponseEntity<ApiResponse<CategoryResponse>> updateCategory(@PathVariable Long id,
-                                                                        @Valid @RequestBody CategoryRequest request) {
-        CategoryResponse response = categoryService.updateCategory(id, request);
-        return buildResponse(response, HttpStatus.OK, "Category updated successfully");
+    public ResponseEntity<ApiResponse<CategoryResponse>> updateCategory(
+            @PathVariable Long id,
+            @Valid @RequestBody CategoryRequest request) {
+
+        return buildResponse(
+                categoryService.updateCategory(id, request),
+                HttpStatus.OK,
+                "Category updated successfully"
+        );
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<CategoryResponse>> getCategoryById(@PathVariable Long id) {
-        CategoryResponse response = categoryService.getCategoryById(id);
-        return buildResponse(response, HttpStatus.OK, "Category fetched successfully");
+    public ResponseEntity<ApiResponse<CategoryResponse>> getCategoryById(
+            @PathVariable Long id) {
+
+        return buildResponse(
+                categoryService.getCategoryById(id),
+                HttpStatus.OK,
+                "Category fetched successfully"
+        );
     }
 
     @GetMapping
     public ResponseEntity<ApiResponse<List<CategoryResponse>>> getAllCategories() {
-        List<CategoryResponse> response = categoryService.getAllCategories();
-        return buildResponse(response, HttpStatus.OK, "Categories fetched successfully");
+
+        return buildResponse(
+                categoryService.getAllCategories(),
+                HttpStatus.OK,
+                "Categories fetched successfully"
+        );
     }
 
     @PreAuthorize("hasRole('ADMIN')")
     @PatchMapping("/{id}/deactivate")
-    public ResponseEntity<ApiResponse<CategoryResponse>> deactivateCategory(@PathVariable Long id) {
-        CategoryResponse response = categoryService.deactivateCategory(id);
-        return buildResponse(response, HttpStatus.OK, "Category deactivated successfully");
+    public ResponseEntity<ApiResponse<CategoryResponse>> deactivateCategory(
+            @PathVariable Long id) {
+
+        return buildResponse(
+                categoryService.deactivateCategory(id),
+                HttpStatus.OK,
+                "Category deactivated successfully"
+        );
     }
 
     @PreAuthorize("hasRole('ADMIN')")
     @PatchMapping("/{id}/activate")
-    public ResponseEntity<ApiResponse<CategoryResponse>> activateCategory(@PathVariable Long id) {
-        CategoryResponse response = categoryService.activateCategory(id);
-        return buildResponse(response, HttpStatus.OK, "Category activated successfully");
+    public ResponseEntity<ApiResponse<CategoryResponse>> activateCategory(
+            @PathVariable Long id) {
+
+        return buildResponse(
+                categoryService.activateCategory(id),
+                HttpStatus.OK,
+                "Category activated successfully"
+        );
     }
 
-    private ResponseEntity<ApiResponse<CategoryResponse>> buildResponse(CategoryResponse data,
-                                                                        HttpStatus status,
-                                                                        String message) {
-        ApiResponse<CategoryResponse> apiResponse = new ApiResponse<>();
+    private <T> ResponseEntity<ApiResponse<T>> buildResponse(
+            T data,
+            HttpStatus status,
+            String message) {
+
+        ApiResponse<T> apiResponse = new ApiResponse<>();
         apiResponse.setTimestamp(LocalDateTime.now());
         apiResponse.setStatus(status.value());
         apiResponse.setMessage(message);
         apiResponse.setData(data);
-        return ResponseEntity.status(status).body(apiResponse);
-    }
 
-    private ResponseEntity<ApiResponse<List<CategoryResponse>>> buildResponse(List<CategoryResponse> data,
-                                                                              HttpStatus status,
-                                                                              String message) {
-        ApiResponse<List<CategoryResponse>> apiResponse = new ApiResponse<>();
-        apiResponse.setTimestamp(LocalDateTime.now());
-        apiResponse.setStatus(status.value());
-        apiResponse.setMessage(message);
-        apiResponse.setData(data);
         return ResponseEntity.status(status).body(apiResponse);
     }
 }
