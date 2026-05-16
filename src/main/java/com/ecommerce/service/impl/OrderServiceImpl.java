@@ -113,7 +113,7 @@ public class OrderServiceImpl implements OrderService {
         Order savedOrder = orderRepository.save(order);
         cartItemRepository.deleteAll(cartItems);
 
-        return buildResponse(savedOrder, "Order placed successfully");
+        return orderMapper.toResponse(savedOrder);
     }
 
     @Override
@@ -122,7 +122,7 @@ public class OrderServiceImpl implements OrderService {
         List<Order> orders = orderRepository.findByUserId(user.getId());
 
         return orders.stream()
-                .map(order -> buildResponse(order, "Order fetched successfully"))
+                .map(orderMapper::toResponse)
                 .toList();
     }
 
@@ -137,14 +137,14 @@ public class OrderServiceImpl implements OrderService {
             throw new ForbiddenOperationException("You cannot access another user's order");
         }
 
-        return buildResponse(order, "Order fetched successfully");
+        return orderMapper.toResponse(order);
     }
 
     @Override
     public List<OrderResponse> getAllOrders() {
         return orderRepository.findAll()
                 .stream()
-                .map(order -> buildResponse(order, "Order fetched successfully"))
+                .map(orderMapper::toResponse)
                 .toList();
     }
 
@@ -154,7 +154,7 @@ public class OrderServiceImpl implements OrderService {
 
         return orderRepository.findByStatus(orderStatus)
                 .stream()
-                .map(order -> buildResponse(order, "Order fetched successfully"))
+                .map(orderMapper::toResponse)
                 .toList();
     }
 
@@ -167,7 +167,7 @@ public class OrderServiceImpl implements OrderService {
         order.setStatus(request.getStatus());
         Order savedOrder = orderRepository.save(order);
 
-        return buildResponse(savedOrder, "Order status updated successfully");
+        return orderMapper.toResponse(savedOrder);
     }
 
     @Override
@@ -195,7 +195,7 @@ public class OrderServiceImpl implements OrderService {
         order.setStatus(OrderStatus.CANCELLED);
         Order savedOrder = orderRepository.save(order);
 
-        return buildResponse(savedOrder, "Order cancelled successfully");
+        return orderMapper.toResponse(savedOrder);
     }
 
     @Override
@@ -203,7 +203,7 @@ public class OrderServiceImpl implements OrderService {
         User user = getUserByEmail(userEmail);
 
         return orderRepository.findByUserId(user.getId(), pageable)
-                .map(order -> buildResponse(order, "Order fetched successfully"));
+                .map(orderMapper::toResponse);
     }
 
     @Override
@@ -212,13 +212,7 @@ public class OrderServiceImpl implements OrderService {
         OrderStatus orderStatus = parseOrderStatus(status);
 
         return orderRepository.findByUserIdAndStatus(user.getId(), orderStatus, pageable)
-                .map(order -> buildResponse(order, "Order fetched successfully"));
-    }
-
-    private OrderResponse buildResponse(Order order, String message) {
-        OrderResponse response = orderMapper.toResponse(order);
-        response.setMessage(message);
-        return response;
+                .map(orderMapper::toResponse);
     }
 
     private OrderStatus parseOrderStatus(String status) {

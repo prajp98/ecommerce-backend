@@ -45,7 +45,7 @@ public class ProductImageServiceImpl implements ProductImageService {
         }
 
         ProductImage savedImage = productImageRepository.save(image);
-        return buildResponse(savedImage, "Image added successfully");
+        return productImageMapper.toResponse(savedImage);
     }
 
     @Override
@@ -54,7 +54,7 @@ public class ProductImageServiceImpl implements ProductImageService {
 
         return productImageRepository.findByProductId(product.getId())
                 .stream()
-                .map(image -> buildResponse(image, "Image fetched successfully"))
+                .map(productImageMapper::toResponse)
                 .toList();
     }
 
@@ -68,13 +68,7 @@ public class ProductImageServiceImpl implements ProductImageService {
         product.removeImage(image);
         productImageRepository.delete(image);
 
-        return buildResponse(image, "Image deleted successfully");
-    }
-
-    private ProductImageResponse buildResponse(ProductImage image, String message) {
-        ProductImageResponse response = productImageMapper.toResponse(image);
-        response.setMessage(message);
-        return response;
+        return productImageMapper.toResponse(image);
     }
 
     private Product getProductById(Long productId) {

@@ -50,7 +50,7 @@ public class AddressServiceImpl implements AddressService {
         address.setDefaultAddress(request.isDefaultAddress());
 
         Address savedAddress = addressRepository.save(address);
-        return buildResponse(savedAddress, "Address added successfully");
+        return addressMapper.toResponse(savedAddress);
     }
 
     @Override
@@ -78,7 +78,7 @@ public class AddressServiceImpl implements AddressService {
         address.setDefaultAddress(request.isDefaultAddress());
 
         Address updatedAddress = addressRepository.save(address);
-        return buildResponse(updatedAddress, "Address updated successfully");
+        return addressMapper.toResponse(updatedAddress);
     }
 
     @Override
@@ -93,7 +93,7 @@ public class AddressServiceImpl implements AddressService {
             throw new ForbiddenOperationException("You cannot delete another user's address");
         }
 
-        AddressResponse response = buildResponse(address, "Address deleted successfully");
+        AddressResponse response = addressMapper.toResponse(address);
         addressRepository.delete(address);
         return response;
     }
@@ -104,7 +104,7 @@ public class AddressServiceImpl implements AddressService {
 
         return addressRepository.findByUserId(user.getId())
                 .stream()
-                .map(address -> buildResponse(address, "Address fetched successfully"))
+                .map(addressMapper::toResponse)
                 .toList();
     }
 
@@ -124,13 +124,7 @@ public class AddressServiceImpl implements AddressService {
 
         address.setDefaultAddress(true);
         Address updatedAddress = addressRepository.save(address);
-        return buildResponse(updatedAddress, "Default address updated successfully");
-    }
-
-    private AddressResponse buildResponse(Address address, String message) {
-        AddressResponse response = addressMapper.toResponse(address);
-        response.setMessage(message);
-        return response;
+        return addressMapper.toResponse(updatedAddress);
     }
 
     private User getUserByEmail(String email) {

@@ -62,7 +62,7 @@ public class CartServiceImpl implements CartService {
             existingCartItem.setQuantity(newQuantity);
             CartItem savedCartItem = cartItemRepository.save(existingCartItem);
 
-            return buildResponse(savedCartItem, "Cart item updated successfully");
+            return buildResponse(savedCartItem);
         }
 
         CartItem cartItem = new CartItem();
@@ -71,7 +71,7 @@ public class CartServiceImpl implements CartService {
         cartItem.setQuantity(request.getQuantity());
 
         CartItem savedCartItem = cartItemRepository.save(cartItem);
-        return buildResponse(savedCartItem, "Product added to cart successfully");
+        return buildResponse(savedCartItem);
     }
 
     @Override
@@ -95,7 +95,7 @@ public class CartServiceImpl implements CartService {
         cartItem.setQuantity(request.getQuantity());
         CartItem savedCartItem = cartItemRepository.save(cartItem);
 
-        return buildResponse(savedCartItem, "Cart item updated successfully");
+        return buildResponse(savedCartItem);
     }
 
     @Override
@@ -110,7 +110,7 @@ public class CartServiceImpl implements CartService {
             throw new ForbiddenOperationException("You cannot remove another user's cart item");
         }
 
-        CartItemResponse response = buildResponse(cartItem, "Cart item removed successfully");
+        CartItemResponse response = buildResponse(cartItem);
         cartItemRepository.delete(cartItem);
         return response;
     }
@@ -121,14 +121,13 @@ public class CartServiceImpl implements CartService {
 
         return cartItemRepository.findByUserId(user.getId())
                 .stream()
-                .map(cartItem -> buildResponse(cartItem, "Cart item fetched successfully"))
+                .map(this::buildResponse)
                 .toList();
     }
 
-    private CartItemResponse buildResponse(CartItem cartItem, String message) {
+    private CartItemResponse buildResponse(CartItem cartItem) {
         CartItemResponse response = cartItemMapper.toResponse(cartItem);
         response.setTotalPrice(calculateTotalPrice(response.getPrice(), response.getQuantity()));
-        response.setMessage(message);
         return response;
     }
 
