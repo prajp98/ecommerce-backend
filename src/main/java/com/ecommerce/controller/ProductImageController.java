@@ -59,6 +59,13 @@ public class ProductImageController {
         );
     }
 
+    @PatchMapping("/images/{imageId}/primary")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<ProductImageResponse>> setPrimaryImage(@PathVariable Long imageId) {
+        ProductImageResponse response = productImageService.setPrimaryImage(imageId);
+        return buildResponse(response, HttpStatus.OK, "Primary image updated successfully");
+    }
+
     private <T> ResponseEntity<ApiResponse<T>> buildResponse(
             T data,
             HttpStatus status,
