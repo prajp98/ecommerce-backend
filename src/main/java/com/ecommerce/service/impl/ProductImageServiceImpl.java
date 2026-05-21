@@ -75,4 +75,19 @@ public class ProductImageServiceImpl implements ProductImageService {
         return productRepository.findById(productId)
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + productId));
     }
+
+    @Override
+    @Transactional
+    public ProductImageResponse setPrimaryImage(Long imageId) {
+        ProductImage image = productImageRepository.findById(imageId)
+                .orElseThrow(() -> new ResourceNotFoundException("Image not found with id: " + imageId));
+
+        Product product = image.getProduct();
+
+        product.getImages().forEach(existingImage -> existingImage.setPrimaryImage(false));
+        image.setPrimaryImage(true);
+
+        productImageRepository.save(image);
+        return productImageMapper.toResponse(image);
+    }
 }
