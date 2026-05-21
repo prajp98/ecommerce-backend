@@ -12,12 +12,13 @@ public class ProductResponse {
     private Long categoryId;
     private String categoryName;
     private boolean active;
+    private String primaryImageUrl;
 
     public ProductResponse() {
     }
 
     public ProductResponse(Long id, String name, String description, BigDecimal price, Integer stock,
-                           Long categoryId, String categoryName, boolean active) {
+                           Long categoryId, String categoryName, boolean active, String primaryImageUrl) {
         this.id = id;
         this.name = name;
         this.description = description;
@@ -26,6 +27,7 @@ public class ProductResponse {
         this.categoryId = categoryId;
         this.categoryName = categoryName;
         this.active = active;
+        this.primaryImageUrl = primaryImageUrl;
     }
 
     public Long getId() {
@@ -90,5 +92,13 @@ public class ProductResponse {
 
     public void setActive(boolean active) {
         this.active = active;
+    }
+
+    public String getPrimaryImageUrl() {
+        return primaryImageUrl;
+    }
+
+    public void setPrimaryImageUrl(String primaryImageUrl) {
+        this.primaryImageUrl = primaryImageUrl;
     }
 }
