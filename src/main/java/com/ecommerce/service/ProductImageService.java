@@ -12,4 +12,6 @@ public interface ProductImageService {
     List<ProductImageResponse> getImagesByProductId(Long productId);
 
     ProductImageResponse deleteImage(Long imageId);
+
+    ProductImageResponse setPrimaryImage(Long imageId);
 }
