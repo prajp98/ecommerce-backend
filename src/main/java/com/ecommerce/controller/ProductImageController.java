@@ -1,14 +1,14 @@
 package com.ecommerce.controller;
 
-import com.ecommerce.dto.request.ProductImageRequest;
 import com.ecommerce.dto.response.ApiResponse;
 import com.ecommerce.dto.response.ProductImageResponse;
 import com.ecommerce.service.ProductImageService;
-import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -24,27 +24,24 @@ public class ProductImageController {
     }
 
     @PreAuthorize("hasRole('ADMIN')")
-    @PostMapping("/{productId}/images")
-    public ResponseEntity<ApiResponse<ProductImageResponse>> addImageToProduct(
+    @PostMapping(value = "/{productId}/images/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ApiResponse<ProductImageResponse>> uploadImageToProduct(
             @PathVariable Long productId,
-            @Valid @RequestBody ProductImageRequest request) {
+            @RequestParam("file") MultipartFile file,
+            @RequestParam(value = "primaryImage", defaultValue = "false") boolean primaryImage) {
 
-        return buildResponse(
-                productImageService.addImageToProduct(productId, request),
-                HttpStatus.CREATED,
-                "Image added successfully"
-        );
+        ProductImageResponse response =
+                productImageService.addImageToProduct(productId, file, primaryImage);
+
+        return buildResponse(response, HttpStatus.CREATED, "Image uploaded successfully");
     }
 
     @GetMapping("/{productId}/images")
     public ResponseEntity<ApiResponse<List<ProductImageResponse>>> getImagesByProductId(
             @PathVariable Long productId) {
 
-        return buildResponse(
-                productImageService.getImagesByProductId(productId),
-                HttpStatus.OK,
-                "Images fetched successfully"
-        );
+        List<ProductImageResponse> response = productImageService.getImagesByProductId(productId);
+        return buildResponse(response, HttpStatus.OK, "Images fetched successfully");
     }
 
     @PreAuthorize("hasRole('ADMIN')")
@@ -52,16 +49,15 @@ public class ProductImageController {
     public ResponseEntity<ApiResponse<ProductImageResponse>> deleteImage(
             @PathVariable Long imageId) {
 
-        return buildResponse(
-                productImageService.deleteImage(imageId),
-                HttpStatus.OK,
-                "Image deleted successfully"
-        );
+        ProductImageResponse response = productImageService.deleteImage(imageId);
+        return buildResponse(response, HttpStatus.OK, "Image deleted successfully");
     }
 
-    @PatchMapping("/images/{imageId}/primary")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse<ProductImageResponse>> setPrimaryImage(@PathVariable Long imageId) {
+    @PatchMapping("/images/{imageId}/primary")
+    public ResponseEntity<ApiResponse<ProductImageResponse>> setPrimaryImage(
+            @PathVariable Long imageId) {
+
         ProductImageResponse response = productImageService.setPrimaryImage(imageId);
         return buildResponse(response, HttpStatus.OK, "Primary image updated successfully");
     }
